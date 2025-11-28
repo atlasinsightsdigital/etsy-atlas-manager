@@ -7,6 +7,9 @@ export function DashboardHeader() {
       <div className="md:hidden">
         <SidebarTrigger />
       </div>
+      <div className="flex-1">
+        {/* Placeholder for potential breadcrumbs or page title */}
+      </div>
       <AuthenticatedHeader />
     </header>
   );

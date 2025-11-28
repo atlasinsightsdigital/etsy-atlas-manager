@@ -2,8 +2,6 @@ import { initializeApp, getApps, getApp, cert, App } from 'firebase-admin/app';
 import { getFirestore as getFirestoreAdmin, Firestore } from 'firebase-admin/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
-// Ce fichier est pour l'initialisation CÔTÉ SERVEUR uniquement.
-
 let app: App;
 let firestore: Firestore;
 
@@ -11,26 +9,31 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
   ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
   : undefined;
 
-if (!getApps().length) {
+function initializeAdminApp() {
+  if (getApps().some(app => app.name === 'admin')) {
+    return getApp('admin');
+  }
+
   if (serviceAccount) {
-    // Environnement de production avec un compte de service
-    app = initializeApp({
+    return initializeApp({
       credential: cert(serviceAccount),
       projectId: firebaseConfig.projectId,
-    });
-  } else {
-    // Environnement local ou un environnement où le compte de service n'est pas défini.
-    // L'initialisation avec seulement le projectId est suffisante pour de nombreux cas d'utilisation côté serveur
-    // lorsque les variables d'environnement par défaut de Google Cloud sont présentes.
-    app = initializeApp({
-        projectId: firebaseConfig.projectId
-    });
+    }, 'admin');
   }
-} else {
-  app = getApp();
+
+  // Fallback for environments where service account isn't set via env var
+  // (like local or some CI/CD) but might have Application Default Credentials.
+  return initializeApp({
+      projectId: firebaseConfig.projectId
+  }, 'admin');
 }
 
+app = initializeAdminApp();
 firestore = getFirestoreAdmin(app);
+
+export function getFirebaseAdminApp() {
+  return app;
+}
 
 export function getFirestore() {
   return firestore;

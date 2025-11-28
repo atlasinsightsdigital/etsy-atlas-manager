@@ -10,7 +10,8 @@
         "name": { "type": "string", "description": "User's display name." },
         "email": { "type": "string", "format": "email", "description": "User's email address." },
         "role": { "type": "string", "enum": ["admin", "user"], "description": "User's role." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of user creation." }
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of user creation." },
+        "auth.session": { "type": "string", "description": "User's session cookie." }
       },
       "required": ["id", "name", "email", "role", "createdAt"]
     },
