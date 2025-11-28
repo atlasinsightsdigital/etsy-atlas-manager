@@ -49,7 +49,10 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: order || {
+    defaultValues: order ? {
+      ...order,
+      orderDate: new Date(order.orderDate).toISOString().split('T')[0],
+    } : {
       etsyOrderId: '',
       customerName: '',
       orderDate: new Date().toISOString().split('T')[0],

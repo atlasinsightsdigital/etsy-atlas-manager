@@ -106,7 +106,11 @@ const statusVariantMap: { [key in Order['status']]: { variant: "default" | "seco
 };
 
 
-export const columns = [
+export const columns: {
+    header: string;
+    accessorKey?: keyof Order;
+    cell?: (row: Order) => React.ReactNode;
+}[] = [
   {
     header: 'Order ID',
     accessorKey: 'etsyOrderId',
@@ -121,29 +125,29 @@ export const columns = [
   },
   {
     header: 'Status',
-    cell: (row: Order) => {
-        const {variant, icon} = statusVariantMap[row.status] || {variant: 'outline', icon: null};
+    cell: ({status}: Order) => {
+        const {variant, icon} = statusVariantMap[status] || {variant: 'outline', icon: null};
         return (
             <Badge variant={variant} className="items-center">
                 {icon}
-                {row.status}
+                {status}
             </Badge>
         );
     },
   },
   {
     header: 'Total Price',
-    cell: (row: Order) => row.orderPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+    cell: ({orderPrice}: Order) => orderPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
   },
     {
     header: 'Profit',
-    cell: (row: Order) => {
-      const profit = row.orderPrice - (row.orderCost + row.shippingCost + row.additionalFees);
+    cell: ({orderPrice, orderCost, shippingCost, additionalFees}: Order) => {
+      const profit = orderPrice - (orderCost + shippingCost + additionalFees);
       return profit.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     }
   },
   {
     header: 'Actions',
-    cell: (row: Order) => <ActionsCell order={row} />,
+    cell: (order: Order) => <ActionsCell order={order} />,
   },
 ];

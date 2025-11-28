@@ -55,7 +55,7 @@ export async function getOrders() {
 }
 
 export async function addOrder(order: Omit<Order, 'id'>) {
-    const newId = (Math.max(...orders.map(o => o.id), 0) + 1).toString();
+    const newId = (Math.max(...orders.map(o => parseInt(o.id)), 0) + 1).toString();
     const newOrder: Order = { ...order, id: newId };
     orders.push(newOrder);
     return newOrder;
@@ -82,7 +82,7 @@ export async function getProducts() {
 }
 
 export async function addProduct(product: Omit<Product, 'id'>) {
-    const newId = (Math.max(...products.map(p => p.id), 0) + 1).toString();
+    const newId = (Math.max(...products.map(p => parseInt(p.id)), 0) + 1).toString();
     const newProduct: Product = { ...product, id: newId };
     products.push(newProduct);
     return newProduct;

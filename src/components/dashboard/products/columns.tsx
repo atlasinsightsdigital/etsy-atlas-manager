@@ -108,7 +108,11 @@ function ActionsCell({ product }: { product: Product }) {
   );
 }
 
-export const columns = [
+export const columns: {
+    header: string;
+    accessorKey?: keyof Product;
+    cell?: (row: Product) => React.ReactNode;
+}[] = [
   {
     header: 'Product',
     cell: (row: Product) => (
