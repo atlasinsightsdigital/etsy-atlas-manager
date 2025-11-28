@@ -1,15 +1,5 @@
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User as UserIcon } from 'lucide-react';
 import { SidebarTrigger } from '../ui/sidebar';
+import AuthenticatedHeader from './authenticated-header';
 
 export function DashboardHeader() {
   return (
@@ -17,9 +7,7 @@ export function DashboardHeader() {
       <div className="md:hidden">
         <SidebarTrigger />
       </div>
-      <div className="flex w-full items-center justify-end gap-4">
-        {/* The user menu can be re-enabled when authentication is added back */}
-      </div>
+      <AuthenticatedHeader />
     </header>
   );
 }
