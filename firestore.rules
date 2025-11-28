@@ -10,7 +10,7 @@ service cloud.firestore {
 
     // Allow read/write access to all users for all collections
     match /{collection}/{docId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
   }
 }
