@@ -19,6 +19,12 @@ exports.onUpdateOrder = onDocumentWritten("orders/{orderId}", async (event) => {
   const beforeSnap = event.data.before;
   const orderData = snap.data();
 
+  // Si le document a été supprimé, il n'y a rien à faire.
+  if (!orderData) {
+    logger.info(`Order ${snap.id} deleted, no action needed.`);
+    return;
+  }
+
   const orderCost = orderData.orderCost || 0;
   const shippingCost = orderData.shippingCost || 0;
   const additionalFees = orderData.additionalFees || 0;
@@ -30,26 +36,21 @@ exports.onUpdateOrder = onDocumentWritten("orders/{orderId}", async (event) => {
   const updateData = {};
   let needsUpdate = false;
 
-  // Comparer les valeurs pour éviter les boucles infinies
-  if (orderData.totalExpenses !== totalExpenses) {
+  const previousData = beforeSnap?.data() || {};
+
+  // Comparer les valeurs pour éviter les mises à jour inutiles et les boucles infinies
+  if (previousData.totalExpenses !== totalExpenses) {
     updateData.totalExpenses = totalExpenses;
     needsUpdate = true;
   }
-  if (orderData.profit !== profit) {
+  if (previousData.profit !== profit) {
     updateData.profit = profit;
     needsUpdate = true;
   }
 
-  // Vérifier si l'utilisateur qui modifie a changé ou si c'est une nouvelle création.
-  const userMakingChange = orderData.editedBy || orderData.createdByUid;
-  const previousUser = beforeSnap?.data()?.editedBy;
-
-  if (userMakingChange && userMakingChange !== previousUser) {
-      updateData.editedBy = userMakingChange;
-      updateData.editedAt = admin.firestore.FieldValue.serverTimestamp();
-      needsUpdate = true;
-  } else if (!beforeSnap.exists) { // Cas de la création
-      if(userMakingChange) updateData.editedBy = userMakingChange;
+  // Mettre à jour l'heure de modification uniquement si d'autres champs changent
+  // ou si c'est une création.
+  if (needsUpdate || !beforeSnap.exists) {
       updateData.editedAt = admin.firestore.FieldValue.serverTimestamp();
       needsUpdate = true;
   }
@@ -58,7 +59,8 @@ exports.onUpdateOrder = onDocumentWritten("orders/{orderId}", async (event) => {
   if (needsUpdate) {
     logger.info(`Updating order ${snap.id} with:`, updateData);
     try {
-      await snap.ref.update(updateData);
+      // Utilisation de { merge: true } pour éviter d'écraser des champs non liés
+      await snap.ref.set(updateData, { merge: true });
       logger.info(`Successfully updated order ${snap.id}.`);
     } catch (error) {
       logger.error(`Error updating order ${snap.id}:`, error);
@@ -100,6 +102,7 @@ exports.importOrder = onRequest(
       const newOrder = {
         ...orderData,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        editedAt: admin.firestore.FieldValue.serverTimestamp(), // Initialiser editedAt
       };
       
       // Ajout des informations sur le créateur si elles sont fournies

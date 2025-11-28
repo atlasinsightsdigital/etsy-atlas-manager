@@ -9,20 +9,17 @@ import {
   deleteDoc,
   setDoc,
   Firestore,
+  Timestamp,
 } from 'firebase/firestore';
 import { getFirestore } from '@/firebase/server-init';
 import { getAuth } from 'firebase-admin/auth';
-import { Timestamp } from 'firebase/firestore';
+import { getFirebaseAdminApp } from '@/firebase/server-init';
 
 // --- Helper function to ensure Firestore is initialized ---
-let firestore: Firestore;
-async function getDb() {
-  if (!firestore) {
-    firestore = getFirestore();
-  }
-  return firestore;
+async function getDb(): Promise<Firestore> {
+  // getFirestore() from server-init already handles initialization logic.
+  return getFirestore();
 }
-
 
 // ORDER ACTIONS
 export async function addOrder(order: Omit<Order, 'id'>) {
@@ -94,7 +91,51 @@ export async function deleteCapitalEntry(id: string) {
 
 // SEED ACTION
 export async function seedDatabase() {
-  console.log('Seeding process initiated. Note: User creation with password is disabled.');
-  // The logic for creating a user with a password has been removed to enforce Google-only sign-in.
-  // Admin roles must now be assigned manually in the Firebase console or through a dedicated admin interface.
+  console.log('Seeding process initiated...');
+  try {
+    const app = getFirebaseAdminApp();
+    const auth = getAuth(app);
+    const db = getFirestore();
+
+    const userEmail = 'admin@etsyatlas.com';
+    const userPassword = 'password';
+    let userRecord;
+
+    // Check if user already exists
+    try {
+      userRecord = await auth.getUserByEmail(userEmail);
+      console.log(`User ${userEmail} already exists.`);
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        // User does not exist, create them
+        userRecord = await auth.createUser({
+          email: userEmail,
+          password: userPassword,
+          emailVerified: true,
+          displayName: 'Admin User',
+        });
+        console.log(`Successfully created new user: ${userRecord.uid}`);
+      } else {
+        // Another error occurred
+        throw error;
+      }
+    }
+
+    // Now, create or update their profile in Firestore
+    const userDocRef = doc(db, 'users', userRecord.uid);
+    await setDoc(userDocRef, {
+      name: 'Admin User',
+      email: userEmail,
+      role: 'admin',
+      createdAt: Timestamp.now(),
+      id: userRecord.uid
+    }, { merge: true });
+
+    console.log(`Admin user profile created/updated in Firestore for ${userEmail}.`);
+    console.log('Seeding process completed successfully.');
+
+  } catch (error) {
+    console.error('Error during database seeding:', error);
+    throw new Error('Failed to seed database. Check server logs for details.');
+  }
 }
