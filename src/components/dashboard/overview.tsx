@@ -21,6 +21,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Skeleton } from '../ui/skeleton';
+import { Timestamp } from 'firebase/firestore';
 
 type OverviewProps = {
   orders: Order[];
@@ -46,10 +47,11 @@ export function Overview({ orders, isLoading }: OverviewProps) {
     const monthlyRevenue: { [key: string]: number } = {};
 
     validOrders.forEach(order => {
-      // Ensure orderDate is a string before parsing
-      if (typeof order.orderDate === 'string') {
+      // Ensure orderDate can be a Timestamp or string
+      const date = order.orderDate instanceof Timestamp ? order.orderDate.toDate() : typeof order.orderDate === 'string' ? parseISO(order.orderDate) : null;
+      if (date && !isNaN(date.getTime())) {
         try {
-          const month = format(parseISO(order.orderDate), 'MMM');
+          const month = format(date, 'MMM');
           monthlyRevenue[month] = (monthlyRevenue[month] || 0) + order.orderPrice;
         } catch (error) {
           console.warn(`Invalid date format for order ${order.id}:`, order.orderDate);

@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { MoreHorizontal, Trash2, ArrowDown, ArrowUp } from 'lucide-react';
@@ -23,7 +24,9 @@ import { useFirestore } from '@/firebase';
 
 function formatDate(date: any): string {
     if (!date) return '';
+    // Handles Firestore Timestamps, ISO strings, and JS Date objects
     const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
+    if (isNaN(jsDate.getTime())) return ''; // Invalid date
     return format(jsDate, 'dd MMM yyyy');
 }
 

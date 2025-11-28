@@ -30,9 +30,11 @@ import { Timestamp } from 'firebase/firestore';
 
 
 function formatDate(date: any): string {
-  if (!date) return '';
-  const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
-  return format(jsDate, 'dd MMM yyyy');
+    if (!date) return '';
+    // Handles Firestore Timestamps, ISO strings, and JS Date objects
+    const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
+    if (isNaN(jsDate.getTime())) return ''; // Invalid date
+    return format(jsDate, 'dd MMM yyyy');
 }
 
 // --- Columns Definition ---

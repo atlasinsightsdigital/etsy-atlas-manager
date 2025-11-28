@@ -1,6 +1,6 @@
 'use server';
 
-import type { Order, CapitalEntry, User } from './definitions';
+import type { Order, CapitalEntry } from './definitions';
 import {
   setDocumentNonBlocking,
   deleteDocumentNonBlocking,
@@ -15,15 +15,14 @@ export async function addOrder(firestore: Firestore, order: Omit<Order, 'id'>) {
         ...order,
         id: newDocRef.id,
         createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
     };
     return setDocumentNonBlocking(newDocRef, newOrder, {});
 }
 
-export async function updateOrder(firestore: Firestore, order: Order) {
-    const orderRef = doc(firestore, 'orders', order.id);
-    // Ensure date is in a format Firestore understands if it's coming from a form.
-    // The form sends it as a 'yyyy-mm-dd' string. Firestore can handle this.
-    const updateData = { ...order, updatedAt: serverTimestamp() };
+export async function updateOrder(firestore: Firestore, id: string, data: Partial<Omit<Order, 'id'>>) {
+    const orderRef = doc(firestore, 'orders', id);
+    const updateData = { ...data, updatedAt: serverTimestamp() };
     return updateDocumentNonBlocking(orderRef, updateData);
 }
 

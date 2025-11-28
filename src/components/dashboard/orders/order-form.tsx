@@ -48,8 +48,11 @@ type OrderFormProps = {
 // Helper to convert Firestore Timestamp or string to 'yyyy-MM-dd' format
 function formatDateForInput(date: any): string {
     if (!date) return '';
+    // Handles Firestore Timestamps, ISO strings, and JS Date objects
     const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
-    // Adjust for timezone offset to get the correct date
+    if (isNaN(jsDate.getTime())) return ''; // Invalid date
+    
+    // Adjust for timezone offset to get the correct local date
     const timezoneOffset = jsDate.getTimezoneOffset() * 60000;
     const adjustedDate = new Date(jsDate.getTime() - timezoneOffset);
     return adjustedDate.toISOString().split('T')[0];
@@ -87,7 +90,7 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
     startTransition(async () => {
       try {
         if (order) {
-          await updateOrder(firestore, { ...order, ...values });
+          await updateOrder(firestore, order.id, values);
           toast({ title: 'Success', description: 'Order updated successfully.' });
         } else {
           await addOrder(firestore, values as Omit<Order, 'id'>);
