@@ -4,64 +4,98 @@ import type { Order, CapitalEntry } from './definitions';
 import {
   collection,
   doc,
-  writeBatch,
-  serverTimestamp,
   addDoc,
-  setDoc,
   updateDoc,
   deleteDoc,
   type Firestore,
 } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 // ORDER ACTIONS
 export async function addOrder(firestore: Firestore, order: Omit<Order, 'id'>) {
   const newOrder = {
     ...order,
-    // Use new Date() which Firestore will convert to a Timestamp
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-  // Use the standard addDoc function and await its completion
-  await addDoc(collection(firestore, 'orders'), newOrder);
+  addDoc(collection(firestore, 'orders'), newOrder)
+    .catch((error) => {
+        const permissionError = new FirestorePermissionError({
+            path: 'orders',
+            operation: 'create',
+            requestResourceData: newOrder
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        console.error("Original error:", error); // Log original error for server-side inspection
+    });
 }
 
 export async function updateOrder(firestore: Firestore, id: string, data: Partial<Omit<Order, 'id'>>) {
   const orderRef = doc(firestore, 'orders', id);
   const updateData = {
     ...data,
-    // Use new Date() for the update timestamp
     updatedAt: new Date(),
   };
-  // Use the standard updateDoc function and await its completion
-  await updateDoc(orderRef, updateData);
+  updateDoc(orderRef, updateData)
+    .catch((error) => {
+        const permissionError = new FirestorePermissionError({
+            path: orderRef.path,
+            operation: 'update',
+            requestResourceData: updateData
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        console.error("Original error:", error);
+    });
 }
 
 export async function deleteOrder(firestore: Firestore, id: string) {
   const orderRef = doc(firestore, 'orders', id);
-  // Use the standard deleteDoc function and await its completion
-  await deleteDoc(orderRef);
+  deleteDoc(orderRef)
+    .catch((error) => {
+        const permissionError = new FirestorePermissionError({
+            path: orderRef.path,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        console.error("Original error:", error);
+    });
 }
 
 // CAPITAL ACTIONS
 export async function addCapitalEntry(firestore: Firestore, entry: Omit<CapitalEntry, 'id' | 'createdAt'>) {
   const newEntry = {
     ...entry,
-    // Use new Date() which Firestore will convert to a Timestamp
     createdAt: new Date(),
   };
-  // Use the standard addDoc function and await its completion
-  await addDoc(collection(firestore, 'capital'), newEntry);
+  addDoc(collection(firestore, 'capital'), newEntry)
+    .catch((error) => {
+        const permissionError = new FirestorePermissionError({
+            path: 'capital',
+            operation: 'create',
+            requestResourceData: newEntry
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        console.error("Original error:", error);
+    });
 }
 
 export async function deleteCapitalEntry(firestore: Firestore, id: string) {
   const capitalRef = doc(firestore, 'capital', id);
-  // Use the standard deleteDoc function and await its completion
-  await deleteDoc(capitalRef);
+  deleteDoc(capitalRef)
+    .catch((error) => {
+        const permissionError = new FirestorePermissionError({
+            path: capitalRef.path,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        console.error("Original error:", error);
+    });
 }
 
 // SEED ACTION
 export async function seedDatabase(firestore: Firestore) {
-  // This function is intentionally left empty to prevent seeding demo data.
-  console.log('Database seeding has been disabled.');
+  // This function is intentionally left empty.
+  console.log('Database seeding is not performed.');
   return Promise.resolve();
 }
