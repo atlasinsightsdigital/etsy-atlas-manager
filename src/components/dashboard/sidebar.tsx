@@ -7,13 +7,11 @@ import {
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
   ShoppingCart,
-  Package,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -30,11 +28,6 @@ export function DashboardSidebar() {
       href: '/dashboard/orders',
       label: 'Orders',
       icon: ShoppingCart,
-    },
-    {
-      href: '/dashboard/products',
-      label: 'Products',
-      icon: Package,
     },
   ];
 
