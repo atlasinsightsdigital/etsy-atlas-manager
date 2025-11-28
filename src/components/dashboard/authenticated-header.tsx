@@ -12,13 +12,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'firebase/auth';
 
 export default function AuthenticatedHeader() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -34,11 +36,13 @@ export default function AuthenticatedHeader() {
   
   const handleSignOut = async () => {
     try {
+      // Sign out from the client-side Firebase session
+      await signOut(auth);
       // Clear the session cookie by calling the API
       await fetch('/api/auth/session', { method: 'DELETE' });
-      // This will trigger a redirect via middleware because the 'session' cookie is gone
+      // This will trigger a redirect via onAuthStateChanged listener on login page or middleware if re-enabled
       router.push('/login');
-      router.refresh(); // Ensure the page reloads and middleware runs
+      router.refresh(); // Ensure the page reloads and state is cleared
     } catch (error) {
       console.error('Failed to sign out:', error);
     }
