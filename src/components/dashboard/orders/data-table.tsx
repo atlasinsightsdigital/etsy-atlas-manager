@@ -150,11 +150,13 @@ export function OrdersDataTable({ data, isLoading }: DataTableProps) {
   const [filter, setFilter] = React.useState('');
   const [open, setOpen] = React.useState(false);
 
-  const filteredData = data.filter((item) =>
-    Object.values(item).some((val) =>
-      String(val).toLowerCase().includes(filter.toLowerCase())
-    )
-  );
+  const filteredData = data.filter((item) => {
+    const searchableFields: (keyof Order)[] = ['etsyOrderId', 'status', 'trackingNumber', 'notes'];
+    return searchableFields.some(field => {
+        const value = item[field];
+        return typeof value === 'string' && value.toLowerCase().includes(filter.toLowerCase());
+    });
+  });
 
   const renderMobileCard = (row: Order) => (
     <Card key={row.id} className="mb-4">
@@ -187,7 +189,7 @@ export function OrdersDataTable({ data, isLoading }: DataTableProps) {
     <div>
       <div className="flex flex-col sm:flex-row items-center justify-between py-4 gap-2">
         <Input
-          placeholder="Filter orders..."
+          placeholder="Filter by ID, status, tracking..."
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
           className="w-full sm:max-w-sm"
@@ -244,7 +246,7 @@ export function OrdersDataTable({ data, isLoading }: DataTableProps) {
                         ? column.cell(row)
                         : column.id === 'profit' || column.id === 'actions'
                         ? ''
-                        : String(row[column.id as keyof Order] ?? '')
+                        : String((row[column.id as keyof Order] as any) ?? '')
                       }
                     </TableCell>
                   ))}

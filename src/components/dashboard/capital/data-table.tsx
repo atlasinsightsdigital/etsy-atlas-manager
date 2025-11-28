@@ -140,11 +140,13 @@ export function CapitalDataTable({ data, isLoading }: DataTableProps) {
   const [filter, setFilter] = React.useState('');
   const [open, setOpen] = React.useState(false);
 
-  const filteredData = data.filter((item) =>
-    Object.values(item).some((val) =>
-      String(val).toLowerCase().includes(filter.toLowerCase())
-    )
-  );
+  const filteredData = data.filter((item) => {
+    const searchableFields: (keyof CapitalEntry)[] = ['type', 'source', 'submittedBy', 'notes'];
+    return searchableFields.some(field => {
+        const value = item[field];
+        return typeof value === 'string' && value.toLowerCase().includes(filter.toLowerCase());
+    });
+  });
 
   const renderMobileCard = (row: CapitalEntry) => (
     <Card key={row.id} className="mb-4">
@@ -169,7 +171,7 @@ export function CapitalDataTable({ data, isLoading }: DataTableProps) {
     <div>
       <div className="flex flex-col sm:flex-row items-center justify-between py-4 gap-2">
         <Input
-          placeholder="Filter entries..."
+          placeholder="Filter by source, submitter..."
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
           className="w-full sm:max-w-sm"
@@ -228,7 +230,7 @@ export function CapitalDataTable({ data, isLoading }: DataTableProps) {
                     <TableCell key={column.id}>
                       {column.cell
                         ? column.cell(row)
-                        : String(row[column.id as keyof CapitalEntry] ?? '')}
+                        : String((row[column.id as keyof CapitalEntry] as any) ?? '')}
                     </TableCell>
                   ))}
                 </TableRow>

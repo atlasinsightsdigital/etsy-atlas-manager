@@ -53,11 +53,13 @@ interface DataTableProps {
 export function UsersDataTable({ data, isLoading }: DataTableProps) {
   const [filter, setFilter] = React.useState('');
 
-  const filteredData = data.filter((item) =>
-    Object.values(item).some((val) =>
-      String(val).toLowerCase().includes(filter.toLowerCase())
-    )
-  );
+  const filteredData = data.filter((item) => {
+    const searchableFields: (keyof User)[] = ['name', 'email', 'role'];
+    return searchableFields.some(field => {
+        const value = item[field];
+        return typeof value === 'string' && value.toLowerCase().includes(filter.toLowerCase());
+    });
+  });
 
   const renderMobileCard = (row: User) => (
     <Card key={row.id} className="mb-4">
@@ -76,7 +78,7 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
     <div>
       <div className="flex items-center justify-between py-4">
         <Input
-          placeholder="Filter users..."
+          placeholder="Filter by name, email, role..."
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
           className="w-full sm:max-w-sm"
@@ -116,7 +118,7 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
                     <TableCell key={column.id}>
                       {column.cell
                         ? column.cell(row)
-                        : String(row[column.id as keyof User] ?? '')}
+                        : String((row[column.id as keyof User] as any) ?? '')}
                     </TableCell>
                   ))}
                 </TableRow>
