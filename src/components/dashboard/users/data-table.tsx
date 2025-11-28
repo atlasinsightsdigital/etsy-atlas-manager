@@ -11,37 +11,16 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import type { User } from '@/lib/definitions';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
+import { columns } from './columns';
 
 function formatDate(date: any): string {
     if (!date) return '';
-    // Convert Firestore Timestamp to JS Date if necessary
     const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
     return format(jsDate, 'dd MMM yyyy');
 }
-
-
-// --- Columns Definition ---
-const roleVariantMap: { [key in User['role']]: "default" | "secondary" | "destructive" | "outline" } = {
-  admin: 'destructive',
-  user: 'secondary',
-};
-
-const columns: {
-    header: string;
-    id: keyof User;
-    cell?: (row: User) => React.ReactNode;
-}[] = [
-  { id: 'name', header: 'Display Name' },
-  { id: 'email', header: 'Email' },
-  { id: 'role', header: 'Role', cell: ({ role }: User) => (
-        <Badge variant={roleVariantMap[role] || 'outline'} className="capitalize">{role}</Badge>
-    )},
-  { id: 'createdAt', header: 'Created At', cell: ({ createdAt }: User) => formatDate(createdAt) },
-];
 
 
 // --- Data Table Component ---
@@ -116,9 +95,9 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
                 <TableRow key={row.id}>
                   {columns.map((column) => (
                     <TableCell key={column.id}>
-                      {column.cell
+                       {column.cell
                         ? column.cell(row)
-                        : String((row[column.id as keyof User] as any) ?? '')}
+                        : (row[column.id as keyof User] as React.ReactNode) ?? ''}
                     </TableCell>
                   ))}
                 </TableRow>

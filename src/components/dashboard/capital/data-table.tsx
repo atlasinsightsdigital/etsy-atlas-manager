@@ -24,7 +24,7 @@ import { PlusCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
-import { columns } from './columns'; // Import columns from the single source of truth
+import { columns } from './columns';
 
 function formatDate(date: any): string {
     if (!date) return '';
@@ -138,7 +138,7 @@ export function CapitalDataTable({ data, isLoading }: DataTableProps) {
                     <TableCell key={column.id}>
                       {column.cell
                         ? column.cell(row)
-                        : String((row[column.id as keyof CapitalEntry] as any) ?? '')}
+                        : (row[column.id as keyof CapitalEntry] as React.ReactNode) ?? ''}
                     </TableCell>
                   ))}
                 </TableRow>
