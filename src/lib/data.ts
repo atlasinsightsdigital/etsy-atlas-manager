@@ -1,5 +1,5 @@
 
-import type { User, Order, Product, CapitalEntry } from './definitions';
+import type { User, Order, CapitalEntry } from './definitions';
 
 export const users: User[] = [
   {
@@ -99,54 +99,6 @@ export const orders: Order[] = [
     shippingCost: 8.0,
     additionalFees: 3.5,
     notes: 'Awaiting payment confirmation.',
-  },
-];
-
-export const products: Product[] = [
-  {
-    id: '1',
-    name: 'Handmade Ceramic Mug',
-    category: 'Home Goods',
-    price: 25.0,
-    stock: 50,
-    imageUrl: 'https://picsum.photos/seed/product1/400/400',
-    imageHint: 'ceramic mug'
-  },
-  {
-    id: '2',
-    name: 'Knitted Winter Scarf',
-    category: 'Accessories',
-    price: 45.0,
-    stock: 30,
-    imageUrl: 'https://picsum.photos/seed/product2/400/400',
-    imageHint: 'knitted scarf'
-  },
-  {
-    id: '3',
-    name: 'Personalized Leather Wallet',
-    category: 'Accessories',
-    price: 60.0,
-    stock: 20,
-    imageUrl: 'https://picsum.photos/seed/product3/400/400',
-    imageHint: 'leather wallet'
-  },
-  {
-    id: '4',
-    name: 'Botanical Art Print',
-    category: 'Art & Collectibles',
-    price: 30.0,
-    stock: 100,
-    imageUrl: 'https://picsum.photos/seed/product4/400/400',
-    imageHint: 'art print'
-  },
-  {
-    id: '5',
-    name: 'Soy Wax Scented Candle',
-    category: 'Home Goods',
-    price: 22.5,
-    stock: 75,
-    imageUrl: 'https://picsum.photos/seed/product5/400/400',
-    imageHint: 'scented candle'
   },
 ];
 

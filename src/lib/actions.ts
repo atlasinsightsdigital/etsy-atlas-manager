@@ -1,13 +1,12 @@
 
 'use server';
 
-import { users as mockUsers, orders as mockOrders, products as mockProducts, capitalEntries as mockCapitalEntries } from '@/lib/data';
-import type { Order, Product, User, CapitalEntry } from './definitions';
+import { users as mockUsers, orders as mockOrders, capitalEntries as mockCapitalEntries } from '@/lib/data';
+import type { Order, User, CapitalEntry } from './definitions';
 
 // Data is stored in memory and reset on server restart.
 // In a real application, this would be a database.
 let orders: Order[] = [...mockOrders];
-let products: Product[] = [...mockProducts];
 let users: User[] = [...mockUsers];
 let capitalEntries: CapitalEntry[] = [...mockCapitalEntries];
 
@@ -42,34 +41,6 @@ export async function updateOrder(order: Order) {
 
 export async function deleteOrder(id: string) {
     orders = orders.filter(o => o.id !== id);
-    return { success: true };
-}
-
-
-// PRODUCT ACTIONS
-export async function getProducts() {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-  return products;
-}
-
-export async function addProduct(product: Omit<Product, 'id'>) {
-    const newId = (Math.max(...products.map(p => parseInt(p.id)), 0) + 1).toString();
-    const newProduct: Product = { ...product, id: newId };
-    products.unshift(newProduct);
-    return newProduct;
-}
-
-export async function updateProduct(product: Product) {
-    const index = products.findIndex(p => p.id === product.id);
-    if (index !== -1) {
-        products[index] = product;
-        return product;
-    }
-    return null;
-}
-
-export async function deleteProduct(id: string) {
-    products = products.filter(p => p.id !== id);
     return { success: true };
 }
 

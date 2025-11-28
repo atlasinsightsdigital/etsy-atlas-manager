@@ -20,16 +20,6 @@ export type Order = {
   trackingNumber?: string;
 };
 
-export type Product = {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  stock: number;
-  imageUrl: string;
-  imageHint: string;
-};
-
 export type CapitalEntry = {
   id: string;
   createdAt: string; 
