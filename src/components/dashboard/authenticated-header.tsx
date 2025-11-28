@@ -44,12 +44,12 @@ export default function AuthenticatedHeader() {
     }
   };
 
-  const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : '?';
+  const userInitial = user?.displayName ? user.displayName.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : '?';
 
   return (
     <div className="flex w-full items-center justify-end gap-4 text-sm">
       <div className="text-right">
-        <p className="font-semibold text-foreground">Hi, {user ? user.email : '...'}</p>
+        <p className="font-semibold text-foreground">Hi, {user ? (user.displayName || user.email) : '...'}</p>
         <p className="text-muted-foreground">{formattedDate}</p>
       </div>
       <div className="text-lg font-mono tracking-tighter rounded-md bg-muted px-2 py-1 min-w-[80px] text-center">
