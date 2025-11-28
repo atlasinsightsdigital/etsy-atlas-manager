@@ -4,11 +4,15 @@ import { UsersDataTable } from '@/components/dashboard/users/data-table';
 import type { User } from '@/lib/definitions';
 import { useFirestore } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
+import { useMemo } from 'react';
 
 export default function UsersPage() {
   const firestore = useFirestore();
 
-  const usersQuery = firestore ? query(collection(firestore, 'users')) : null;
+  const usersQuery = useMemo(() =>
+    firestore ? query(collection(firestore, 'users')) : null,
+    [firestore]
+  );
 
   const { data: users, isLoading } = useCollection<User>(usersQuery);
 

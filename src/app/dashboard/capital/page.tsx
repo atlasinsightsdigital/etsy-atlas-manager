@@ -7,11 +7,15 @@ import { Landmark, TrendingDown, TrendingUp } from 'lucide-react';
 import type { CapitalEntry } from '@/lib/definitions';
 import { collection, query } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { useMemo } from 'react';
 
 export default function CapitalPage() {
   const firestore = useFirestore();
   
-  const capitalQuery = firestore ? query(collection(firestore, 'capital')) : null;
+  const capitalQuery = useMemo(() => 
+    firestore ? query(collection(firestore, 'capital')) : null,
+    [firestore]
+  );
 
   const { data: entries, isLoading } = useCollection<CapitalEntry>(capitalQuery);
 

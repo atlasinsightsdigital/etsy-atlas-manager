@@ -4,11 +4,15 @@ import { OrdersDataTable } from '@/components/dashboard/orders/data-table';
 import type { Order } from '@/lib/definitions';
 import { useFirestore } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
+import { useMemo } from 'react';
 
 export default function OrdersPage() {
   const firestore = useFirestore();
 
-  const ordersQuery = firestore ? query(collection(firestore, 'orders')) : null;
+  const ordersQuery = useMemo(() => 
+    firestore ? query(collection(firestore, 'orders')) : null,
+    [firestore]
+  );
   
   const { data: orders, isLoading } = useCollection<Order>(ordersQuery);
 
