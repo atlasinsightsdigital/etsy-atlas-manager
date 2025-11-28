@@ -28,9 +28,9 @@ import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
-  type: z.enum(['payout', 'loan', 'personal']),
+  type: z.enum(['payout', 'loan']),
   amount: z.coerce.number().positive('Amount must be a positive number.'),
-  source: z.string().min(1, 'Source is required.'),
+  source: z.enum(['Etsy', 'Personal']),
   transactionDate: z.string().min(1, 'Transaction date is required.'),
   submittedBy: z.string().min(1, 'Submitter is required.'),
   notes: z.string().optional(),
@@ -94,9 +94,42 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
                   <SelectContent>
                     <SelectItem value="payout">Payout</SelectItem>
                     <SelectItem value="loan">Loan</SelectItem>
-                    <SelectItem value="personal">Personal</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+              control={form.control}
+              name="source"
+              render={({ field }) => (
+              <FormItem>
+                  <FormLabel>Source</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger><SelectValue placeholder="Select a source" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Etsy">Etsy</SelectItem>
+                      <SelectItem value="Personal">Personal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+              </FormItem>
+              )}
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="transactionDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Transaction Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -114,34 +147,6 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
               </FormItem>
             )}
           />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-                control={form.control}
-                name="source"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Source</FormLabel>
-                    <FormControl>
-                    <Input placeholder="Etsy, Bank, etc." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-              control={form.control}
-              name="transactionDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Transaction Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
         </div>
         <FormField
           control={form.control}
