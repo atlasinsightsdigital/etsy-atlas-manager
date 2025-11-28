@@ -59,7 +59,7 @@ export async function seedDatabase(firestore: Firestore) {
         name: user.name,
         email: user.email,
         role: user.role,
-        createdAt: serverTimestamp() 
+        createdAt: user.createdAt
     };
     batch.set(docRef, userData);
   });
@@ -78,7 +78,7 @@ export async function seedDatabase(firestore: Firestore) {
         additionalFees: order.additionalFees,
         notes: order.notes,
         trackingNumber: order.trackingNumber,
-        createdAt: serverTimestamp()
+        createdAt: order.createdAt
     };
     batch.set(docRef, orderData);
   });
@@ -94,7 +94,7 @@ export async function seedDatabase(firestore: Firestore) {
         source: entry.source,
         submittedBy: entry.submittedBy,
         notes: entry.notes,
-        createdAt: serverTimestamp()
+        createdAt: entry.createdAt
     };
     batch.set(docRef, entryData);
   });

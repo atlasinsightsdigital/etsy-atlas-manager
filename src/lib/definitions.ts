@@ -1,11 +1,14 @@
-import { FieldValue } from "firebase/firestore";
+import { FieldValue, Timestamp } from "firebase/firestore";
+
+// Helper type to represent a Firestore Timestamp or a string for serialization
+type FirestoreDate = string | Timestamp | FieldValue;
 
 export type User = {
   id: string; 
   name: string; 
   email: string;
   role: 'admin' | 'user';
-  createdAt: string | FieldValue; 
+  createdAt: FirestoreDate;
 };
 
 export type Order = {
@@ -19,13 +22,13 @@ export type Order = {
   additionalFees: number;
   notes?: string;
   trackingNumber?: string;
-  createdAt?: string | FieldValue;
-  updatedAt?: string | FieldValue;
+  createdAt?: FirestoreDate;
+  updatedAt?: FirestoreDate;
 };
 
 export type CapitalEntry = {
   id: string;
-  createdAt: string | FieldValue; 
+  createdAt: FirestoreDate;
   transactionDate: string;
   type: 'Deposit' | 'Withdrawal';
   amount: number;

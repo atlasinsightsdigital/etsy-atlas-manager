@@ -1,21 +1,23 @@
 import type { User, Order, CapitalEntry } from './definitions';
 
-export const users: Omit<User, 'createdAt'>[] = [
+export const users: User[] = [
   {
     id: '1',
     name: 'Admin User',
     email: 'admin@etsyatlas.com',
     role: 'admin',
+    createdAt: '2023-10-01T10:00:00Z',
   },
   {
     id: '2',
     name: 'Store Manager',
     email: 'manager@etsyatlas.com',
     role: 'user',
+    createdAt: '2023-10-01T11:00:00Z',
   },
 ];
 
-export const orders: Omit<Order, 'createdAt'>[] = [
+export const orders: Order[] = [
   {
     id: '1',
     etsyOrderId: 'ORD78901',
@@ -27,6 +29,7 @@ export const orders: Omit<Order, 'createdAt'>[] = [
     additionalFees: 5.0,
     notes: 'Customer requested gift wrapping.',
     trackingNumber: '1Z999AA10123456789',
+    createdAt: '2023-10-23T12:00:00Z',
   },
   {
     id: '2',
@@ -39,6 +42,7 @@ export const orders: Omit<Order, 'createdAt'>[] = [
     additionalFees: 7.5,
     notes: 'Fragile item, handle with care.',
     trackingNumber: '1Z999AA10198765432',
+    createdAt: '2023-10-24T14:30:00Z',
   },
   {
     id: '3',
@@ -50,10 +54,11 @@ export const orders: Omit<Order, 'createdAt'>[] = [
     shippingCost: 10.0,
     additionalFees: 2.25,
     notes: '',
+    createdAt: '2023-10-25T09:00:00Z',
   },
 ];
 
-export const capitalEntries: Omit<CapitalEntry, 'createdAt'>[] = [
+export const capitalEntries: CapitalEntry[] = [
   {
     id: '1',
     transactionDate: '2023-10-01',
@@ -62,6 +67,7 @@ export const capitalEntries: Omit<CapitalEntry, 'createdAt'>[] = [
     source: 'Loan',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'Initial capital injection.',
+    createdAt: '2023-10-01T09:00:00Z',
   },
   {
     id: '2',
@@ -71,6 +77,7 @@ export const capitalEntries: Omit<CapitalEntry, 'createdAt'>[] = [
     source: 'Etsy Payout',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'First Etsy payout for October.',
+    createdAt: '2023-10-15T18:00:00Z',
   },
   {
     id: '3',
@@ -80,6 +87,7 @@ export const capitalEntries: Omit<CapitalEntry, 'createdAt'>[] = [
     source: 'Loan',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'Small business loan for scaling.',
+    createdAt: '2023-11-01T11:00:00Z',
   },
    {
     id: '4',
@@ -89,5 +97,6 @@ export const capitalEntries: Omit<CapitalEntry, 'createdAt'>[] = [
     source: 'Dividend',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'Personal withdrawal.',
+    createdAt: '2023-11-20T17:00:00Z',
   },
 ];

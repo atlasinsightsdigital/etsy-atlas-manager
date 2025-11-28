@@ -13,6 +13,16 @@ import { Input } from '@/components/ui/input';
 import type { User } from '@/lib/definitions';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Timestamp } from 'firebase/firestore';
+import { format } from 'date-fns';
+
+function formatDate(date: any): string {
+    if (!date) return '';
+    // Convert Firestore Timestamp to JS Date if necessary
+    const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
+    return format(jsDate, 'dd MMM yyyy');
+}
+
 
 // --- Columns Definition ---
 const roleVariantMap: { [key in User['role']]: "default" | "secondary" | "destructive" | "outline" } = {
@@ -30,7 +40,7 @@ const columns: {
   { id: 'role', header: 'Role', cell: ({ role }: User) => (
         <Badge variant={roleVariantMap[role] || 'outline'} className="capitalize">{role}</Badge>
     )},
-  { id: 'createdAt', header: 'Created At' },
+  { id: 'createdAt', header: 'Created At', cell: ({ createdAt }: User) => formatDate(createdAt) },
 ];
 
 
@@ -57,7 +67,7 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
             {columns.find(c => c.id === 'role')?.cell?.(row)}
         </div>
         <p className="text-sm text-muted-foreground">{row.email}</p>
-        <p className="text-xs text-muted-foreground pt-2">Created: {String(row.createdAt)}</p>
+        <p className="text-xs text-muted-foreground pt-2">Created: {formatDate(row.createdAt)}</p>
       </CardContent>
     </Card>
   );
@@ -106,7 +116,7 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
                     <TableCell key={column.id}>
                       {column.cell
                         ? column.cell(row)
-                        : String(row[column.id] ?? '')}
+                        : String(row[column.id as keyof User] ?? '')}
                     </TableCell>
                   ))}
                 </TableRow>
