@@ -18,11 +18,21 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { useMemo } from 'react';
+import { format, parseISO } from 'date-fns';
+import { Skeleton } from '../ui/skeleton';
 
 type OverviewProps = {
   orders: Order[];
   isLoading: boolean;
 };
+
+const chartConfig = {
+  revenue: {
+    label: 'Revenue',
+    color: 'hsl(var(--primary))',
+  },
+} satisfies ChartConfig;
 
 export function Overview({ orders, isLoading }: OverviewProps) {
   const validOrders = orders.filter(order => order.status !== 'Cancelled');
@@ -31,22 +41,31 @@ export function Overview({ orders, isLoading }: OverviewProps) {
   const totalProfit = totalRevenue - totalExpenses;
   const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
   const totalOrders = validOrders.length;
-  
-  const chartData = [
-    { month: 'Jan', revenue: 1860 },
-    { month: 'Feb', revenue: 3050 },
-    { month: 'Mar', revenue: 2370 },
-    { month: 'Apr', revenue: 730 },
-    { month: 'May', revenue: 2090 },
-    { month: 'Jun', revenue: 2140 },
-  ];
 
-  const chartConfig = {
-    revenue: {
-      label: "Revenue",
-      color: "hsl(var(--primary))",
-    },
-  } satisfies ChartConfig
+  const chartData = useMemo(() => {
+    const monthlyRevenue: { [key: string]: number } = {};
+
+    validOrders.forEach(order => {
+      // Ensure orderDate is a string before parsing
+      if (typeof order.orderDate === 'string') {
+        try {
+          const month = format(parseISO(order.orderDate), 'MMM');
+          monthlyRevenue[month] = (monthlyRevenue[month] || 0) + order.orderPrice;
+        } catch (error) {
+          console.warn(`Invalid date format for order ${order.id}:`, order.orderDate);
+        }
+      }
+    });
+
+    const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    return monthOrder.map(month => ({
+      month,
+      revenue: monthlyRevenue[month] || 0,
+    })).filter(d => d.revenue > 0); // Only show months with revenue
+
+  }, [validOrders]);
+
 
   const aiSummaryInput = {
     totalOrders,
@@ -98,34 +117,42 @@ export function Overview({ orders, isLoading }: OverviewProps) {
       <Card className="lg:col-span-4 shadow-md">
         <CardHeader>
           <CardTitle>Revenue Overview</CardTitle>
-          <CardDescription>A look at your revenue over the last 6 months.</CardDescription>
+          <CardDescription>A dynamic look at your revenue over time.</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <BarChart accessibilityLayer data={chartData}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-                stroke="hsl(var(--muted-foreground))"
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                stroke="hsl(var(--muted-foreground))"
-                tick={{ fontSize: 12 }}
-                tickFormatter={(value) => `${value / 1000}K`}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent indicator="dot" />}
-              />
-              <Bar dataKey="revenue" fill="var(--color-revenue)" radius={8} />
-            </BarChart>
-          </ChartContainer>
+          {isLoading ? (
+            <Skeleton className="h-[300px] w-full" />
+          ) : chartData.length > 0 ? (
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <BarChart accessibilityLayer data={chartData}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={(value) => `${value / 1000}K`}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="dot" />}
+                />
+                <Bar dataKey="revenue" fill="var(--color-revenue)" radius={8} />
+              </BarChart>
+            </ChartContainer>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              No revenue data to display. Add some orders to see the chart.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
