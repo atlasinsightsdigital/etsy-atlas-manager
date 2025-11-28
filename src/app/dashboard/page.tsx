@@ -1,14 +1,15 @@
 'use client';
 
+import { useMemo } from 'react';
 import { Overview } from '@/components/dashboard/overview';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore } from '@/firebase';
 import type { Order } from '@/lib/definitions';
 import { collection, query } from 'firebase/firestore';
 
 export default function DashboardPage() {
   const firestore = useFirestore();
 
-  const ordersQuery = useMemoFirebase(() => {
+  const ordersQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'orders'));
   }, [firestore]);

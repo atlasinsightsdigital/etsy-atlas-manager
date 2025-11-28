@@ -1,6 +1,7 @@
 'use client';
 
-import { useCollection, useMemoFirebase } from '@/firebase';
+import { useMemo } from 'react';
+import { useCollection } from '@/firebase';
 import { CapitalDataTable } from '@/components/dashboard/capital/data-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Landmark, TrendingDown, TrendingUp } from 'lucide-react';
@@ -11,7 +12,7 @@ import { useFirestore } from '@/firebase';
 export default function CapitalPage() {
   const firestore = useFirestore();
   
-  const capitalQuery = useMemoFirebase(() => {
+  const capitalQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'capital'));
   }, [firestore]);

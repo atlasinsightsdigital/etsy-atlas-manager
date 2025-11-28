@@ -1,5 +1,6 @@
 'use client';
-import { useCollection, useMemoFirebase } from '@/firebase';
+import { useMemo } from 'react';
+import { useCollection } from '@/firebase';
 import { UsersDataTable } from '@/components/dashboard/users/data-table';
 import type { User } from '@/lib/definitions';
 import { useFirestore } from '@/firebase';
@@ -8,7 +9,7 @@ import { collection, query } from 'firebase/firestore';
 export default function UsersPage() {
   const firestore = useFirestore();
 
-  const usersQuery = useMemoFirebase(() => {
+  const usersQuery = useMemo(() => {
     if (!firestore) return null;
     return query(collection(firestore, 'users'));
   }, [firestore]);
