@@ -43,7 +43,7 @@ export default async function CapitalPage() {
             <Scale className="h-5 w-5 text-destructive/80" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold tracking-tight text-destructive">
+            <p className="text-xl font-bold tracking-tight text-destructive">
               {totalLoans.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
             </p>
             <p className="text-xs text-destructive/70">
@@ -58,7 +58,7 @@ export default async function CapitalPage() {
             <PiggyBank className="h-5 w-5 text-primary/80" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold tracking-tight text-primary">
+            <p className="text-xl font-bold tracking-tight text-primary">
               {pureCapital.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
             </p>
             <p className="text-xs text-primary/70">
