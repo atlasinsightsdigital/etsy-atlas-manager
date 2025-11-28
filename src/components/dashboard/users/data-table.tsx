@@ -95,9 +95,7 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
                 <TableRow key={row.id}>
                   {columns.map((column) => (
                     <TableCell key={column.id}>
-                       {column.cell
-                        ? column.cell(row)
-                        : (row[column.id as keyof User] as React.ReactNode) ?? ''}
+                       {column.cell ? column.cell(row) : (row[column.id as keyof User] as string)}
                     </TableCell>
                   ))}
                 </TableRow>

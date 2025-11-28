@@ -140,9 +140,7 @@ export function OrdersDataTable({ data, isLoading }: DataTableProps) {
                 <TableRow key={row.id}>
                   {columns.map((column) => (
                     <TableCell key={column.id}>
-                      {column.cell
-                        ? column.cell(row)
-                        : (row[column.id as keyof Order] as React.ReactNode) ?? ''}
+                      {column.cell ? column.cell(row) : (row[column.id as keyof Order] as string)}
                     </TableCell>
                   ))}
                 </TableRow>

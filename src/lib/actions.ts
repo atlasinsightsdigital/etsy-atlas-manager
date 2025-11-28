@@ -49,9 +49,7 @@ export async function deleteCapitalEntry(firestore: Firestore, id: string) {
 
 // SEED ACTION
 export async function seedDatabase(firestore: Firestore) {
-  const batch = writeBatch(firestore);
-  
-  // No data to seed
-  
-  await batch.commit();
+  // This function is intentionally left empty to prevent seeding demo data.
+  console.log("Database seeding has been disabled.");
+  return Promise.resolve();
 }
