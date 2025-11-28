@@ -26,7 +26,7 @@ export type CapitalEntry = {
   transactionDate: string;
   type: 'Deposit' | 'Withdrawal';
   amount: number;
-  source: string;
+  source: 'Etsy Payout' | 'Loan' | 'Dividend' | 'Investment';
   submittedBy: string; 
   notes?: string;
   locked: boolean;
