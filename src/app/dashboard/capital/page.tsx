@@ -3,13 +3,30 @@ import { getCapitalEntries } from '@/lib/actions';
 import { CapitalDataTable } from '@/components/dashboard/capital/data-table';
 import { columns } from '@/components/dashboard/capital/columns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Landmark, PiggyBank, Scale } from 'lucide-react';
+import { Landmark, PiggyBank, Scale, TrendingDown } from 'lucide-react';
 
 export default async function CapitalPage() {
   const entries = await getCapitalEntries();
-  const totalCapital = entries.reduce((sum, entry) => sum + entry.amount, 0);
-  const totalLoans = entries.filter(e => e.type === 'loan').reduce((sum, entry) => sum + entry.amount, 0);
-  const pureCapital = entries.filter(e => e.type === 'payout').reduce((sum, entry) => sum + entry.amount, 0);
+  
+  const totalInjections = entries
+    .filter(e => e.type === 'payout' || e.type === 'loan')
+    .reduce((sum, entry) => sum + entry.amount, 0);
+
+  const totalWithdrawals = entries
+    .filter(e => e.type === 'withdraw')
+    .reduce((sum, entry) => sum + entry.amount, 0);
+
+  const totalCapital = totalInjections - totalWithdrawals;
+
+  const totalLoans = entries
+    .filter(e => e.type === 'loan')
+    .reduce((sum, entry) => sum + entry.amount, 0);
+
+  const pureCapitalInjections = entries
+    .filter(e => e.type === 'payout')
+    .reduce((sum, entry) => sum + entry.amount, 0);
+  
+  const pureCapital = pureCapitalInjections - totalWithdrawals;
 
 
   return (
@@ -21,8 +38,8 @@ export default async function CapitalPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="shadow-md col-span-3">
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="shadow-md col-span-4">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Capital</CardTitle>
             <Landmark className="h-5 w-5 text-muted-foreground" />
@@ -32,7 +49,7 @@ export default async function CapitalPage() {
               {totalCapital.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
             </p>
             <p className="text-xs text-muted-foreground">
-              Total capital injected from all sources.
+              Total capital injected minus withdrawals.
             </p>
           </CardContent>
         </Card>
@@ -54,7 +71,7 @@ export default async function CapitalPage() {
 
         <Card className="shadow-md bg-primary/10 border-primary/50 col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-primary/80">Pure Capital (Payouts)</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary/80">Pure Capital (Net)</CardTitle>
             <PiggyBank className="h-5 w-5 text-primary/80" />
           </CardHeader>
           <CardContent>
@@ -62,7 +79,22 @@ export default async function CapitalPage() {
               {pureCapital.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
             </p>
             <p className="text-xs text-primary/70">
-              Total capital from your own funds and Etsy payouts.
+              Payouts and personal funds minus withdrawals.
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-md bg-secondary/80 border-secondary">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-secondary-foreground">Total Withdrawals</CardTitle>
+            <TrendingDown className="h-5 w-5 text-secondary-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-xl font-bold tracking-tight text-secondary-foreground">
+              {totalWithdrawals.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Total amount withdrawn for personal use.
             </p>
           </CardContent>
         </Card>

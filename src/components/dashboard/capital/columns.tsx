@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Trash2, ArrowDown, ArrowUp, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -72,9 +72,10 @@ function ActionsCell({ entry }: { entry: CapitalEntry }) {
   );
 }
 
-const typeVariantMap: { [key in CapitalEntry['type']]: "default" | "secondary" | "destructive" | "outline" } = {
-  payout: 'default',
-  loan: 'destructive',
+const typeConfigMap: { [key in CapitalEntry['type']]: { variant: "default" | "secondary" | "destructive" | "outline", icon: React.ReactNode } } = {
+  payout: { variant: 'default', icon: <ArrowUp className="mr-1 h-3 w-3" /> },
+  loan: { variant: 'destructive', icon: <Banknote className="mr-1 h-3 w-3" /> },
+  withdraw: { variant: 'secondary', icon: <ArrowDown className="mr-1 h-3 w-3" /> },
 };
 
 export const columns: {
@@ -93,8 +94,8 @@ export const columns: {
   {
     header: 'Type',
     cell: ({ type }: CapitalEntry) => {
-        const variant = typeVariantMap[type] || 'outline';
-        return <Badge variant={variant} className="capitalize">{type}</Badge>;
+        const { variant, icon } = typeConfigMap[type] || { variant: 'outline', icon: null };
+        return <Badge variant={variant} className="capitalize items-center">{icon}{type}</Badge>;
     },
   },
   {

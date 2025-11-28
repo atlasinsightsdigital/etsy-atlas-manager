@@ -28,9 +28,9 @@ import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
-  type: z.enum(['payout', 'loan']),
+  type: z.enum(['payout', 'loan', 'withdraw']),
   amount: z.coerce.number().positive('Amount must be a positive number.'),
-  source: z.enum(['Etsy', 'Personal']),
+  source: z.string().min(1, 'Source is required'),
   transactionDate: z.string().min(1, 'Transaction date is required.'),
   submittedBy: z.string().min(1, 'Submitter is required.'),
   notes: z.string().optional(),
@@ -77,6 +77,8 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
     });
   }
 
+  const isWithdraw = form.watch('type') === 'withdraw';
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -94,6 +96,7 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
                   <SelectContent>
                     <SelectItem value="payout">Payout</SelectItem>
                     <SelectItem value="loan">Loan</SelectItem>
+                    <SelectItem value="withdraw">Withdraw</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -106,15 +109,21 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
               render={({ field }) => (
               <FormItem>
                   <FormLabel>Source</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Select a source" /></SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Etsy">Etsy</SelectItem>
-                      <SelectItem value="Personal">Personal</SelectItem>
-                    </SelectContent>
-                  </Select>
+                   <FormControl>
+                     { isWithdraw ? (
+                        <Input placeholder="e.g. Personal" {...field} />
+                     ) : (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger><SelectValue placeholder="Select a source" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Etsy">Etsy</SelectItem>
+                                <SelectItem value="Personal">Personal</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
+                     )
+                    }
+                  </FormControl>
                   <FormMessage />
               </FormItem>
               )}

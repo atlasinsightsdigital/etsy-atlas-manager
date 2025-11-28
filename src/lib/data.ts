@@ -184,4 +184,15 @@ export const capitalEntries: CapitalEntry[] = [
     notes: 'Small business loan for scaling.',
     locked: true,
   },
+   {
+    id: '4',
+    createdAt: '2023-11-20T11:30:00Z',
+    transactionDate: '2023-11-20',
+    type: 'withdraw',
+    amount: 800,
+    source: 'Personal',
+    submittedBy: 'admin@etsyatlas.com',
+    notes: 'Personal withdrawal.',
+    locked: true,
+  },
 ];
