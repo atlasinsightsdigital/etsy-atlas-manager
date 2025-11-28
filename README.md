@@ -75,22 +75,22 @@ Stocke toutes les commandes, qu'elles soient importées ou ajoutées manuellemen
     }
     ```
 
-#### Collection `products`
+#### Collection `capital`
 
-Stocke les informations sur les produits de votre boutique.
+Stocke les mouvements de capitaux (dépôts et retraits).
 
--   **Chemin**: `/products/{productId}`
--   **Exemple de document**:
-    ```json
-    {
-      "name": "Handmade Ceramic Mug",
-      "category": "Home Goods",
-      "price": 25.00,
-      "stock": 50,
-      "imageUrl": "https://picsum.photos/seed/product1/400/400",
-      "imageHint": "ceramic mug"
-    }
-    ```
+- **Chemin**: `/capital/{capitalId}`
+- **Exemple de document**:
+  ```json
+  {
+    "transactionDate": "2023-10-01",
+    "type": "Deposit",
+    "amount": 5000,
+    "source": "Loan",
+    "submittedBy": "admin@etsyatlas.com",
+    "notes": "Initial capital injection."
+  }
+  ```
 
 ---
 
@@ -98,7 +98,7 @@ Stocke les informations sur les produits de votre boutique.
 
 1.  **Créer un projet Firebase**:
     -   Allez sur la [console Firebase](https://console.firebase.google.com/).
-    -   Cliquez sur **"Ajouter un projet"** et suivez les instructions.
+    -   Cliquez sur **"Ajouter un projet"** et suivez les instructions. L'ID de votre projet actuel est `studio-5135010085-b15f6`.
 
 2.  **Activer les services**:
     -   Dans le menu de gauche, allez dans **"Build"**.
@@ -109,7 +109,11 @@ Stocke les informations sur les produits de votre boutique.
         -   Cliquez sur "Firestore Database" puis sur **"Créer une base de données"**.
         -   Choisissez le mode **Production** et sélectionnez une région.
 
-3.  **Enregistrer votre application web**:
+3.  **Visualiser vos données**:
+    - Pour voir les données de votre application (commandes, utilisateurs, etc.), restez dans la section **Firestore Database**.
+    - Vous verrez ici vos collections (`orders`, `users`, `capital`) et pourrez explorer les documents qu'elles contiennent.
+
+4.  **Enregistrer votre application web**:
     -   Sur la page d'aperçu de votre projet, cliquez sur l'icône web (`</>`) pour ajouter une application web.
     -   Donnez un nom à votre application (ex: "Atlas Etsy Gest Web") et cochez la case pour configurer **Firebase Hosting**.
     -   Firebase vous fournira un objet de configuration `firebaseConfig`. Vous en aurez besoin à l'étape suivante.
@@ -137,7 +141,7 @@ Stocke les informations sur les produits de votre boutique.
     Sélectionnez le projet Firebase que vous venez de créer.
 
 4.  **Créer le fichier `.env.local`**:
-    À la racine de votre projet, créez un fichier nommé `.env.local`. Copiez-y la configuration de votre application Firebase (obtenue à l'étape 3.3).
+    À la racine de votre projet, créez un fichier nommé `.env.local`. Copiez-y la configuration de votre application Firebase (obtenue à l'étape 3.4).
 
     ```env
     # .env.local
