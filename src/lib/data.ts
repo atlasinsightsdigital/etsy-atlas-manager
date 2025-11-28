@@ -23,7 +23,6 @@ export const orders: Order[] = [
   {
     id: '1',
     etsyOrderId: 'ORD78901',
-    customerName: 'Liam Johnson',
     orderDate: '2023-10-23',
     status: 'Delivered',
     orderPrice: 150.0,
@@ -35,7 +34,6 @@ export const orders: Order[] = [
   {
     id: '2',
     etsyOrderId: 'ORD78902',
-    customerName: 'Olivia Smith',
     orderDate: '2023-10-24',
     status: 'Shipped',
     orderPrice: 200.5,
@@ -47,7 +45,6 @@ export const orders: Order[] = [
   {
     id: '3',
     etsyOrderId: 'ORD78903',
-    customerName: 'Noah Williams',
     orderDate: '2023-10-25',
     status: 'Pending',
     orderPrice: 75.25,
@@ -59,7 +56,6 @@ export const orders: Order[] = [
   {
     id: '4',
     etsyOrderId: 'ORD78904',
-    customerName: 'Emma Brown',
     orderDate: '2023-10-26',
     status: 'Delivered',
     orderPrice: 350.0,
@@ -71,7 +67,6 @@ export const orders: Order[] = [
   {
     id: '5',
     etsyOrderId: 'ORD78905',
-    customerName: 'Ava Jones',
     orderDate: '2023-11-01',
     status: 'Cancelled',
     orderPrice: 55.0,
@@ -83,7 +78,6 @@ export const orders: Order[] = [
   {
     id: '6',
     etsyOrderId: 'ORD78906',
-    customerName: 'James Garcia',
     orderDate: '2023-11-05',
     status: 'Shipped',
     orderPrice: 120.0,
@@ -95,7 +89,6 @@ export const orders: Order[] = [
   {
     id: '7',
     etsyOrderId: 'ORD78907',
-    customerName: 'Sophia Miller',
     orderDate: '2023-11-10',
     status: 'Pending',
     orderPrice: 89.99,

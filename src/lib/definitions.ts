@@ -10,7 +10,6 @@ export type User = {
 export type Order = {
   id: string;
   etsyOrderId: string;
-  customerName: string;
   orderDate: string;
   status: 'Pending' | 'Shipped' | 'Delivered' | 'Cancelled';
   orderPrice: number;

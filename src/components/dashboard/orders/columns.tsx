@@ -116,10 +116,6 @@ export const columns: {
     accessorKey: 'etsyOrderId',
   },
   {
-    header: 'Customer',
-    accessorKey: 'customerName',
-  },
-  {
     header: 'Date',
     accessorKey: 'orderDate',
   },

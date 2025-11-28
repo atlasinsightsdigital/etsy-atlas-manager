@@ -29,7 +29,6 @@ import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
   etsyOrderId: z.string().min(1, 'Etsy Order ID is required'),
-  customerName: z.string().min(1, 'Customer name is required'),
   orderDate: z.string().min(1, 'Order date is required'),
   status: z.enum(['Pending', 'Shipped', 'Delivered', 'Cancelled']),
   orderPrice: z.coerce.number().positive('Must be a positive number'),
@@ -56,7 +55,6 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
       orderDate: new Date(order.orderDate).toISOString().split('T')[0],
     } : {
       etsyOrderId: '',
-      customerName: '',
       orderDate: new Date().toISOString().split('T')[0],
       status: 'Pending',
       orderPrice: 0,
@@ -74,6 +72,7 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
           await updateOrder({ ...order, ...values });
           toast({ title: 'Success', description: 'Order updated successfully.' });
         } else {
+          // @ts-ignore
           await addOrder(values);
           toast({ title: 'Success', description: 'Order added successfully.' });
         }
@@ -101,19 +100,6 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
                 <FormLabel>Etsy Order ID</FormLabel>
                 <FormControl>
                   <Input placeholder="123456789" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="customerName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Customer Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Doe" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
