@@ -3,6 +3,9 @@ import type { NextRequest } from 'next/server';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirebaseAdminApp } from '@/firebase/server-init';
 
+// Force the middleware to run on the Node.js runtime
+export const runtime = 'nodejs';
+
 async function verifySessionCookie(sessionCookie?: string): Promise<string | null> {
   if (!sessionCookie) return null;
 
