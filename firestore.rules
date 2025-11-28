@@ -1,34 +1,126 @@
+/**
+ * This ruleset enforces a strict user-ownership model for an Etsy store management application.
+ *
+ * Core Philosophy:
+ * All data is private and owned by a specific user. There is no public or shared data. The ruleset ensures
+ * that a user can only ever access data that exists within their own data tree, preventing any
+ * cross-user data access.
+ *
+ * Data Structure:
+ * The data is hierarchically organized under a top-level `users` collection. Each user's data,
+ * including their products and associated orders, is nested under their unique user ID:
+ * - /users/{userId}/products/{productId}
+ * - /users/{userId}/products/{productId}/orders/{orderId}
+ *
+ * Key Security Decisions:
+ * - Strict Path-Based Ownership: All security decisions are derived from the `{userId}` in the document path.
+ *   A user's authenticated UID must match this `{userId}` for any access to be granted.
+ * - No Public Listing: Users cannot list the contents of the top-level `users` collection. Listing is only
+ *   permitted within a user's own data subcollections (e.g., a user can list their own products).
+ * - Relational Integrity: On document creation, the rules validate that the document's internal `id` field
+ *   matches the document ID from the path. This `id` is then enforced as immutable on updates to maintain
+ *   data consistency.
+ *
+ * Denormalization for Authorization:
+ * The data model is designed to be self-contained for authorization. All necessary information to secure a
+ * document or its subcollections is contained within the document's path. This avoids costly and slow `get()`
+ * calls to other documents for authorization checks, leading to more performant and scalable security rules.
+ *
+ * Structural Segregation:
+ * User data is strictly segregated into private subcollections under `/users/{userId}`. This physical separation
+ * is the primary mechanism for preventing data leakage and simplifies rules for listing documents, as queries
+ * are naturally scoped to the authenticated user's data.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check for admin role
-    function isAdmin() {
-      return request.auth != null && request.auth.token.role == "admin";
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // /users/{uid}
-    // Les utilisateurs peuvent lire/écrire leur propre profil.
-    // Les administrateurs peuvent lire/écrire n'importe quel profil.
-    match /users/{uid} {
-      allow read, write: if request.auth.uid == uid || isAdmin();
+    /**
+     * Returns true if the authenticated user's UID matches the provided userId.
+     * This is the primary function for enforcing user ownership.
+     * @param userId The user ID to check against the authenticated user.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    // /orders/{orderId}
-    // Les utilisateurs authentifiés peuvent lire les commandes.
-    // Les utilisateurs peuvent créer/mettre à jour/supprimer leurs propres commandes.
-    // Les administrateurs peuvent écrire sur n'importe quelle commande.
-    match /orders/{orderId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && (request.resource.data.createdByUid == request.auth.uid || isAdmin());
+    /**
+     * Returns true if the document being accessed already exists in Firestore.
+     * Used to protect against updates or deletes on non-existent documents.
+     */
+    function isExistingDocument() {
+      return resource != null;
     }
 
-    // /products/{productId}
-    // Tout le monde peut lire les produits.
-    // Seuls les administrateurs peuvent écrire sur les produits.
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    /**
+     * A composite function that checks for both ownership and document existence.
+     * Essential for securing all state-changing operations like update and delete.
+     * @param userId The user ID to check for ownership.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && isExistingDocument();
+    }
+
+    /**
+     * Validates that the incoming document's `id` field matches its document ID in the path.
+     * Enforces relational integrity on creation.
+     * @param docId The document ID from the path.
+     */
+    function hasCorrectIdOnCreate(docId) {
+      return request.resource.data.id == docId;
+    }
+
+    /**
+     * Validates that the `id` field of a document is not being changed.
+     * Enforces immutability for critical identifiers on update.
+     */
+    function idIsImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    // ------------------------------------------------------------------------
+    // Collection Rules
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Secures the `products` subcollection, ensuring that only the owning user can manage their products.
+     * @path /users/{userId}/products/{productId}
+     * @allow A signed-in user (UID 'user123') creating a product under their own path (`/users/user123/products/prod456`).
+     * @deny An authenticated user ('user123') trying to read or write a product under another user's path (`/users/user789/products/prodABC`).
+     * @principle Enforces strict user ownership based on the document path. All operations are restricted to the user whose UID matches the `{userId}` in the path.
+     */
+    match /users/{userId}/products/{productId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasCorrectIdOnCreate(productId);
+      allow update: if isExistingOwner(userId) && idIsImmutable();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secures the `orders` subcollection, which is nested under a user's product. Access is inherited from the parent user path.
+     * @path /users/{userId}/products/{productId}/orders/{orderId}
+     * @allow A signed-in user (UID 'user123') reading an order (`orderABC`) for one of their own products (`/users/user123/products/prod456/orders/orderABC`).
+     * @deny An authenticated user ('user123') trying to list orders for a product owned by another user (`/users/user789/products/prodXYZ/orders`).
+     * @principle Inherits ownership from the parent path, ensuring only the product owner can manage related orders.
+     */
+    match /users/{userId}/products/{productId}/orders/{orderId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasCorrectIdOnCreate(orderId);
+      allow update: if isExistingOwner(userId) && idIsImmutable();
+      allow delete: if isExistingOwner(userId);
     }
   }
 }
