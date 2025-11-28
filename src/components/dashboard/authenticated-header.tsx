@@ -11,10 +11,13 @@ function getCookie(name: string): string | undefined {
 }
 
 export default function AuthenticatedHeader() {
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
+    // Set the initial date/time on the client
+    setCurrentDateTime(new Date());
+
     const timer = setInterval(() => {
       setCurrentDateTime(new Date());
     }, 1000);
@@ -34,8 +37,8 @@ export default function AuthenticatedHeader() {
     };
   }, []);
   
-  const formattedDate = format(currentDateTime, 'eeee, MMMM do, yyyy');
-  const formattedTime = format(currentDateTime, 'HH:mm:ss');
+  const formattedDate = currentDateTime ? format(currentDateTime, 'eeee, MMMM do, yyyy') : '...';
+  const formattedTime = currentDateTime ? format(currentDateTime, 'HH:mm:ss') : '...';
 
   return (
     <div className="flex w-full items-center justify-end gap-4 text-sm">
@@ -43,7 +46,7 @@ export default function AuthenticatedHeader() {
             {userName && <p className="font-semibold text-foreground">Hi, {userName}</p>}
             <p className="text-muted-foreground">{formattedDate}</p>
         </div>
-        <div className="text-lg font-mono tracking-tighter rounded-md bg-muted px-2 py-1">
+        <div className="text-lg font-mono tracking-tighter rounded-md bg-muted px-2 py-1 min-w-[80px] text-center">
             {formattedTime}
         </div>
     </div>
