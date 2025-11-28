@@ -26,6 +26,7 @@ import { addOrder, updateOrder } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useFirestore } from '@/firebase';
+import { Timestamp } from 'firebase/firestore';
 
 const formSchema = z.object({
   etsyOrderId: z.string().min(1, 'Etsy Order ID is required'),
@@ -44,6 +45,16 @@ type OrderFormProps = {
   setOpen: (open: boolean) => void;
 };
 
+// Helper to convert Firestore Timestamp or string to 'yyyy-MM-dd' format
+function formatDateForInput(date: any): string {
+    if (!date) return '';
+    const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
+    // Adjust for timezone offset to get the correct date
+    const timezoneOffset = jsDate.getTimezoneOffset() * 60000;
+    const adjustedDate = new Date(jsDate.getTime() - timezoneOffset);
+    return adjustedDate.toISOString().split('T')[0];
+}
+
 export function OrderForm({ order, setOpen }: OrderFormProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -53,7 +64,7 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: order ? {
       ...order,
-      orderDate: new Date(order.orderDate).toISOString().split('T')[0],
+      orderDate: formatDateForInput(order.orderDate),
     } : {
       etsyOrderId: '',
       orderDate: new Date().toISOString().split('T')[0],

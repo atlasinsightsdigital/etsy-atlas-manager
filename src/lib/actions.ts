@@ -1,7 +1,6 @@
 'use server';
 
 import type { Order, CapitalEntry, User } from './definitions';
-import { users, orders, capitalEntries } from './data';
 import {
   setDocumentNonBlocking,
   deleteDocumentNonBlocking,
@@ -22,6 +21,8 @@ export async function addOrder(firestore: Firestore, order: Omit<Order, 'id'>) {
 
 export async function updateOrder(firestore: Firestore, order: Order) {
     const orderRef = doc(firestore, 'orders', order.id);
+    // Ensure date is in a format Firestore understands if it's coming from a form.
+    // The form sends it as a 'yyyy-mm-dd' string. Firestore can handle this.
     const updateData = { ...order, updatedAt: serverTimestamp() };
     return updateDocumentNonBlocking(orderRef, updateData);
 }
@@ -50,54 +51,8 @@ export async function deleteCapitalEntry(firestore: Firestore, id: string) {
 // SEED ACTION
 export async function seedDatabase(firestore: Firestore) {
   const batch = writeBatch(firestore);
-
-  // Seed Users
-  users.forEach((user) => {
-    const docRef = doc(firestore, 'users', user.id);
-    const userData = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        createdAt: serverTimestamp(),
-    };
-    batch.set(docRef, userData);
-  });
-
-  // Seed Orders
-  orders.forEach((order) => {
-    const docRef = doc(firestore, 'orders', order.id);
-    const orderData = { 
-        id: order.id,
-        etsyOrderId: order.etsyOrderId,
-        orderDate: order.orderDate,
-        status: order.status,
-        orderPrice: order.orderPrice,
-        orderCost: order.orderCost,
-        shippingCost: order.shippingCost,
-        additionalFees: order.additionalFees,
-        notes: '',
-        trackingNumber: '',
-        createdAt: serverTimestamp(),
-    };
-    batch.set(docRef, orderData);
-  });
-
-  // Seed Capital Entries
-  capitalEntries.forEach((entry) => {
-    const docRef = doc(firestore, 'capital', entry.id);
-    const entryData = {
-        id: entry.id,
-        transactionDate: entry.transactionDate,
-        type: entry.type,
-        amount: entry.amount,
-        source: entry.source,
-        submittedBy: entry.submittedBy,
-        notes: entry.notes || '',
-        createdAt: serverTimestamp(),
-    };
-    batch.set(docRef, entryData);
-  });
-
+  
+  // No data to seed
+  
   await batch.commit();
 }
