@@ -1,4 +1,4 @@
-nodenodedouble_brackets_open
+
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onRequest } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
@@ -123,4 +123,3 @@ exports.importOrder = onRequest(
     }
   }
 );
-nodenode_brackets_close
