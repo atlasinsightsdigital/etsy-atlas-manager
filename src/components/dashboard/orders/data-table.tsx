@@ -36,6 +36,15 @@ import { Input } from '@/components/ui/input';
 import { PlusCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useFirestore } from '@/firebase';
+import { format } from 'date-fns';
+import { Timestamp } from 'firebase/firestore';
+
+
+function formatDate(date: any): string {
+  if (!date) return '';
+  const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
+  return format(jsDate, 'dd MMM yyyy');
+}
 
 // --- Columns Definition ---
 
@@ -124,7 +133,7 @@ const columns: {
     cell?: (row: Order) => React.ReactNode;
 }[] = [
   { id: 'etsyOrderId', header: 'Order ID' },
-  { id: 'orderDate', header: 'Date' },
+  { id: 'orderDate', header: 'Date', cell: ({ orderDate }: Order) => formatDate(orderDate) },
   { id: 'status', header: 'Status', cell: ({status}: Order) => {
         const config = statusConfigMap[status] || {variant: 'outline', icon: null};
         return <Badge variant={config.variant} className="items-center">{config.icon}{status}</Badge>;
@@ -154,6 +163,7 @@ export function OrdersDataTable({ data, isLoading }: DataTableProps) {
     const searchableFields: (keyof Order)[] = ['etsyOrderId', 'status', 'trackingNumber', 'notes'];
     return searchableFields.some(field => {
         const value = item[field];
+        // Ensure value is a string before calling toLowerCase
         return typeof value === 'string' && value.toLowerCase().includes(filter.toLowerCase());
     });
   });
@@ -164,7 +174,7 @@ export function OrdersDataTable({ data, isLoading }: DataTableProps) {
             <div className="flex justify-between items-start">
                 <div>
                     <p className="font-bold">{row.etsyOrderId}</p>
-                    <p className="text-sm text-muted-foreground">{row.orderDate}</p>
+                    <p className="text-sm text-muted-foreground">{formatDate(row.orderDate)}</p>
                 </div>
                 <ActionsCell order={row} />
             </div>
