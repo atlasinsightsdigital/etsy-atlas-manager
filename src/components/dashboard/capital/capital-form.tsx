@@ -28,7 +28,7 @@ import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
-  type: z.enum(['payout', 'loan', 'withdraw']),
+  type: z.enum(['Deposit', 'Withdrawal']),
   amount: z.coerce.number().positive('Amount must be a positive number.'),
   source: z.string().min(1, 'Source is required'),
   transactionDate: z.string().min(1, 'Transaction date is required.'),
@@ -50,9 +50,9 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: 'payout',
+      type: 'Deposit',
       amount: 0,
-      source: 'Etsy',
+      source: '',
       transactionDate: new Date().toISOString().split('T')[0],
       submittedBy: currentUserEmail,
       notes: '',
@@ -76,8 +76,6 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
     });
   }
 
-  const isWithdraw = form.watch('type') === 'withdraw';
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -93,9 +91,8 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
                     <SelectTrigger><SelectValue placeholder="Select an entry type" /></SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="payout">Payout</SelectItem>
-                    <SelectItem value="loan">Loan</SelectItem>
-                    <SelectItem value="withdraw">Withdraw</SelectItem>
+                    <SelectItem value="Deposit">Deposit</SelectItem>
+                    <SelectItem value="Withdrawal">Withdrawal</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -109,19 +106,7 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
               <FormItem>
                   <FormLabel>Source</FormLabel>
                    <FormControl>
-                     { isWithdraw ? (
-                        <Input placeholder="e.g. Personal" {...field} />
-                     ) : (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger><SelectValue placeholder="Select a source" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Etsy">Etsy</SelectItem>
-                                <SelectItem value="Personal">Personal</SelectItem>
-                                <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                        </Select>
-                     )
-                    }
+                      <Input placeholder="e.g. Etsy, Personal, Bank Loan" {...field} />
                   </FormControl>
                   <FormMessage />
               </FormItem>

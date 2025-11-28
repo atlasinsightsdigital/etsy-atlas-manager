@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Trash2, ArrowDown, ArrowUp, Banknote } from 'lucide-react';
+import { MoreHorizontal, Trash2, ArrowDown, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -92,10 +92,9 @@ function ActionsCell({ entry }: { entry: CapitalEntry }) {
   );
 }
 
-const typeConfigMap: { [key in CapitalEntry['type']]: { variant: "default" | "secondary" | "destructive" | "outline", icon: React.ReactNode } } = {
-  payout: { variant: 'default', icon: <ArrowUp className="mr-1 h-3 w-3" /> },
-  loan: { variant: 'destructive', icon: <Banknote className="mr-1 h-3 w-3" /> },
-  withdraw: { variant: 'secondary', icon: <ArrowDown className="mr-1 h-3 w-3" /> },
+const typeConfigMap: { [key in CapitalEntry['type']]: { variant: "default" | "destructive", icon: React.ReactNode } } = {
+  Deposit: { variant: 'default', icon: <ArrowUp className="mr-1 h-3 w-3" /> },
+  Withdrawal: { variant: 'destructive', icon: <ArrowDown className="mr-1 h-3 w-3" /> },
 };
 
 const columns: {
@@ -106,12 +105,12 @@ const columns: {
   { id: 'createdAt', header: 'Entry Date', cell: ({ createdAt }: CapitalEntry) => format(new Date(createdAt), 'dd MMM yyyy')},
   { id: 'transactionDate', header: 'Transaction Date', cell: ({ transactionDate }: CapitalEntry) => format(new Date(transactionDate), 'dd MMM yyyy') },
   { id: 'type', header: 'Type', cell: ({ type }: CapitalEntry) => {
-        const config = typeConfigMap[type] || { variant: 'outline', icon: null };
+        const config = typeConfigMap[type];
         return <Badge variant={config.variant} className="capitalize items-center">{config.icon}{type}</Badge>;
     }},
   { id: 'amount', header: 'Amount', cell: ({ amount, type }: CapitalEntry) => (
-      <span className={type === 'withdraw' ? 'text-destructive' : 'text-green-600'}>
-          {type === 'withdraw' ? '-' : '+'}
+      <span className={type === 'Withdrawal' ? 'text-destructive' : 'text-green-600'}>
+          {type === 'Withdrawal' ? '-' : '+'}
           {amount.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
       </span>
   )},

@@ -24,7 +24,7 @@ export type CapitalEntry = {
   id: string;
   createdAt: string; 
   transactionDate: string;
-  type: 'payout' | 'loan' | 'withdraw';
+  type: 'Deposit' | 'Withdrawal';
   amount: number;
   source: string;
   submittedBy: string; 
