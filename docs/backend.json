@@ -55,7 +55,6 @@
   },
   "auth": {
     "providers": [
-      "password",
       "google"
     ]
   },

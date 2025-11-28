@@ -83,51 +83,7 @@ export async function deleteCapitalEntry(id: string) {
 
 // SEED ACTION
 export async function seedDatabase() {
-  const adminAuth = getAuth();
-  const firestore = getFirestore();
-
-  const adminEmail = 'admin@etsyatlas.com';
-  const adminPassword = 'password';
-
-  try {
-    // 1. Create or update the admin user in Firebase Auth
-    let userRecord;
-    try {
-      userRecord = await adminAuth.getUserByEmail(adminEmail);
-      // If user exists, update password and other details if necessary
-      await adminAuth.updateUser(userRecord.uid, {
-        password: adminPassword,
-        emailVerified: true,
-      });
-    } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        // If user does not exist, create them
-        userRecord = await adminAuth.createUser({
-          email: adminEmail,
-          password: adminPassword,
-          emailVerified: true,
-          displayName: 'Admin User',
-        });
-      } else {
-        // For other auth errors, re-throw
-        throw error;
-      }
-    }
-
-    // 2. Create the corresponding user profile in Firestore
-    const userDocRef = doc(firestore, 'users', userRecord.uid);
-    const newUser: Omit<User, 'id'> = {
-        name: 'Admin User',
-        email: adminEmail,
-        role: 'admin',
-        createdAt: Timestamp.now(),
-    };
-    await setDoc(userDocRef, newUser, { merge: true });
-
-    console.log('Admin user successfully created/updated and seeded.');
-
-  } catch (error) {
-    console.error('Error seeding database with admin user:', error);
-    throw new Error('Could not seed the database. Check server logs for details.');
-  }
+  console.log('Seeding process initiated. Note: User creation with password is disabled.');
+  // The logic for creating a user with a password has been removed to enforce Google-only sign-in.
+  // Admin roles must now be assigned manually in the Firebase console or through a dedicated admin interface.
 }
