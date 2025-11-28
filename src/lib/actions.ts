@@ -3,10 +3,9 @@
 import type { Order, CapitalEntry, User } from './definitions';
 import { users, orders, capitalEntries } from './data';
 import {
-  addDocumentNonBlocking,
+  setDocumentNonBlocking,
   deleteDocumentNonBlocking,
   updateDocumentNonBlocking,
-  setDocumentNonBlocking,
 } from '@/firebase/non-blocking-updates';
 import { collection, doc, serverTimestamp, type Firestore, writeBatch } from 'firebase/firestore';
 
@@ -55,22 +54,48 @@ export async function seedDatabase(firestore: Firestore) {
   // Seed Users
   users.forEach((user) => {
     const docRef = doc(firestore, 'users', user.id);
-    // Replace serverTimestamp placeholder with actual serverTimestamp
-    const userData = { ...user, createdAt: serverTimestamp() };
+    const userData = { 
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: serverTimestamp() 
+    };
     batch.set(docRef, userData);
   });
 
   // Seed Orders
   orders.forEach((order) => {
     const docRef = doc(firestore, 'orders', order.id);
-    const orderData = { ...order, createdAt: serverTimestamp() };
+    const orderData = { 
+        id: order.id,
+        etsyOrderId: order.etsyOrderId,
+        orderDate: order.orderDate,
+        status: order.status,
+        orderPrice: order.orderPrice,
+        orderCost: order.orderCost,
+        shippingCost: order.shippingCost,
+        additionalFees: order.additionalFees,
+        notes: order.notes,
+        trackingNumber: order.trackingNumber,
+        createdAt: serverTimestamp()
+    };
     batch.set(docRef, orderData);
   });
 
   // Seed Capital Entries
   capitalEntries.forEach((entry) => {
     const docRef = doc(firestore, 'capital', entry.id);
-    const entryData = { ...entry, createdAt: serverTimestamp() };
+    const entryData = {
+        id: entry.id,
+        transactionDate: entry.transactionDate,
+        type: entry.type,
+        amount: entry.amount,
+        source: entry.source,
+        submittedBy: entry.submittedBy,
+        notes: entry.notes,
+        createdAt: serverTimestamp()
+    };
     batch.set(docRef, entryData);
   });
 
