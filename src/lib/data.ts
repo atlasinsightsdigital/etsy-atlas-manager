@@ -30,6 +30,7 @@ export const orders: Order[] = [
     orderCost: 70.0,
     shippingCost: 15.0,
     additionalFees: 5.0,
+    notes: 'Customer requested gift wrapping.',
   },
   {
     id: '2',
@@ -41,6 +42,7 @@ export const orders: Order[] = [
     orderCost: 90.0,
     shippingCost: 20.0,
     additionalFees: 7.5,
+    notes: 'Fragile item, handle with care.',
   },
   {
     id: '3',
@@ -52,6 +54,7 @@ export const orders: Order[] = [
     orderCost: 30.0,
     shippingCost: 10.0,
     additionalFees: 2.25,
+    notes: '',
   },
   {
     id: '4',
@@ -63,6 +66,7 @@ export const orders: Order[] = [
     orderCost: 150.0,
     shippingCost: 30.0,
     additionalFees: 15.0,
+    notes: '',
   },
   {
     id: '5',
@@ -74,6 +78,7 @@ export const orders: Order[] = [
     orderCost: 25.0,
     shippingCost: 5.0,
     additionalFees: 1.0,
+    notes: 'Customer cancelled due to wrong address.',
   },
   {
     id: '6',
@@ -85,6 +90,7 @@ export const orders: Order[] = [
     orderCost: 60.0,
     shippingCost: 12.0,
     additionalFees: 4.0,
+    notes: '',
   },
   {
     id: '7',
@@ -96,6 +102,7 @@ export const orders: Order[] = [
     orderCost: 45.0,
     shippingCost: 8.0,
     additionalFees: 3.5,
+    notes: 'Awaiting payment confirmation.',
   },
 ];
 

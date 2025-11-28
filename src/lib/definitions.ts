@@ -17,6 +17,7 @@ export type Order = {
   orderCost: number;
   shippingCost: number;
   additionalFees: number;
+  notes?: string;
 };
 
 export type Product = {

@@ -25,6 +25,7 @@ import { useTransition } from 'react';
 import type { Order } from '@/lib/definitions';
 import { addOrder, updateOrder } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 const formSchema = z.object({
   etsyOrderId: z.string().min(1, 'Etsy Order ID is required'),
@@ -35,6 +36,7 @@ const formSchema = z.object({
   orderCost: z.coerce.number().min(0, 'Cannot be negative'),
   shippingCost: z.coerce.number().min(0, 'Cannot be negative'),
   additionalFees: z.coerce.number().min(0, 'Cannot be negative'),
+  notes: z.string().optional(),
 });
 
 type OrderFormProps = {
@@ -61,6 +63,7 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
       orderCost: 0,
       shippingCost: 0,
       additionalFees: 0,
+      notes: '',
     },
   });
 
@@ -210,6 +213,23 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
                 )}
             />
         </div>
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Add any internal notes for this order..."
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <div className="flex justify-end pt-4">
             <Button type="submit" disabled={isPending}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
