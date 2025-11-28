@@ -1,7 +1,7 @@
 
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Trash2, ArrowDown, ArrowUp, Banknote } from 'lucide-react';
+import { MoreHorizontal, Trash2, ArrowDown, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,21 +17,31 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { deleteCapitalEntry } from '@/lib/actions';
 import { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import { Timestamp } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+
+function formatDate(date: any): string {
+    if (!date) return '';
+    const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
+    return format(jsDate, 'dd MMM yyyy');
+}
 
 function ActionsCell({ entry }: { entry: CapitalEntry }) {
+  const firestore = useFirestore();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const router = useRouter();
 
   const handleDelete = () => {
+    if (!firestore) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Firestore not available.' });
+      return;
+    }
     startTransition(async () => {
-      await deleteCapitalEntry(entry.id);
+      await deleteCapitalEntry(firestore, entry.id);
       toast({ title: 'Success', description: 'Capital entry deleted successfully.' });
       setIsDeleteDialogOpen(false);
-      router.refresh();
     });
   };
   
@@ -48,7 +58,7 @@ function ActionsCell({ entry }: { entry: CapitalEntry }) {
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem className="text-destructive focus:text-destructive" disabled={entry.locked}>
+            <DropdownMenuItem className="text-destructive focus:text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>
@@ -72,46 +82,31 @@ function ActionsCell({ entry }: { entry: CapitalEntry }) {
   );
 }
 
-const typeConfigMap: { [key in CapitalEntry['type']]: { variant: "default" | "secondary" | "destructive" | "outline", icon: React.ReactNode } } = {
-  payout: { variant: 'default', icon: <ArrowUp className="mr-1 h-3 w-3" /> },
-  loan: { variant: 'destructive', icon: <Banknote className="mr-1 h-3 w-3" /> },
-  withdraw: { variant: 'secondary', icon: <ArrowDown className="mr-1 h-3 w-3" /> },
+const typeConfigMap: { [key in CapitalEntry['type']]: { variant: "default" | "destructive", icon: React.ReactNode } } = {
+  Deposit: { variant: 'default', icon: <ArrowUp className="mr-1 h-3 w-3" /> },
+  Withdrawal: { variant: 'destructive', icon: <ArrowDown className="mr-1 h-3 w-3" /> },
 };
+
 
 export const columns: {
     header: string;
-    accessorKey?: keyof CapitalEntry;
+    id: keyof CapitalEntry | 'actions';
     cell?: (row: CapitalEntry) => React.ReactNode;
 }[] = [
-  {
-    header: 'Entry Date',
-    cell: ({ createdAt }: CapitalEntry) => format(new Date(createdAt), 'dd MMM yyyy'),
-  },
-  {
-    header: 'Transaction Date',
-    cell: ({ transactionDate }: CapitalEntry) => format(new Date(transactionDate), 'dd MMM yyyy'),
-  },
-  {
-    header: 'Type',
-    cell: ({ type }: CapitalEntry) => {
-        const { variant, icon } = typeConfigMap[type] || { variant: 'outline', icon: null };
-        return <Badge variant={variant} className="capitalize items-center">{icon}{type}</Badge>;
-    },
-  },
-  {
-    header: 'Amount',
-    cell: ({ amount }: CapitalEntry) => amount.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
-  },
-  {
-    header: 'Source',
-    accessorKey: 'source',
-  },
-  {
-    header: 'Submitted By',
-    accessorKey: 'submittedBy',
-  },
-  {
-    header: 'Actions',
-    cell: (entry: CapitalEntry) => <ActionsCell entry={entry} />,
-  },
+  { id: 'createdAt', header: 'Entry Date', cell: ({ createdAt }: CapitalEntry) => formatDate(createdAt)},
+  { id: 'transactionDate', header: 'Transaction Date', cell: ({ transactionDate }: CapitalEntry) => formatDate(transactionDate) },
+  { id: 'type', header: 'Type', cell: ({ type }: CapitalEntry) => {
+        const config = typeConfigMap[type];
+        if (!config) return <Badge variant="outline">{type}</Badge>;
+        return <Badge variant={config.variant} className="capitalize items-center">{config.icon}{type}</Badge>;
+    }},
+  { id: 'amount', header: 'Amount', cell: ({ amount, type }: CapitalEntry) => (
+      <span className={type === 'Withdrawal' ? 'text-destructive' : 'text-green-600'}>
+          {type === 'Withdrawal' ? '-' : '+'}
+          {amount.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
+      </span>
+  )},
+  { id: 'source', header: 'Source' },
+  { id: 'submittedBy', header: 'Submitted By' },
+  { id: 'actions', header: 'Actions', cell: (entry: CapitalEntry) => <ActionsCell entry={entry} />},
 ];

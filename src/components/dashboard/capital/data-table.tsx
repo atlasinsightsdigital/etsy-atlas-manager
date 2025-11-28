@@ -1,21 +1,16 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Trash2, ArrowDown, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import type { CapitalEntry } from '@/lib/definitions';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { deleteCapitalEntry } from '@/lib/actions';
-import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { CapitalEntryForm } from './capital-form';
 import {
   Table,
   TableBody,
@@ -26,109 +21,16 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { PlusCircle } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { CapitalEntryForm } from './capital-form';
 import { Card, CardContent } from '@/components/ui/card';
-import { useFirestore } from '@/firebase';
 import { Timestamp } from 'firebase/firestore';
-
+import { format } from 'date-fns';
+import { columns } from './columns'; // Import columns from the single source of truth
 
 function formatDate(date: any): string {
     if (!date) return '';
     const jsDate = date instanceof Timestamp ? date.toDate() : new Date(date);
     return format(jsDate, 'dd MMM yyyy');
 }
-
-
-// --- Columns Definition ---
-function ActionsCell({ entry }: { entry: CapitalEntry }) {
-  const firestore = useFirestore();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [isPending, startTransition] = React.useTransition();
-  const { toast } = useToast();
-
-  const handleDelete = () => {
-    if (!firestore) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Firestore not available.' });
-      return;
-    }
-    startTransition(async () => {
-      await deleteCapitalEntry(firestore, entry.id);
-      toast({ title: 'Success', description: 'Capital entry deleted successfully.' });
-      setIsDeleteDialogOpen(false);
-    });
-  };
-  
-  return (
-    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <AlertDialogTrigger asChild>
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </AlertDialogTrigger>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete this capital entry.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} disabled={isPending}>Continue</AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  );
-}
-
-const typeConfigMap: { [key in CapitalEntry['type']]: { variant: "default" | "destructive", icon: React.ReactNode } } = {
-  Deposit: { variant: 'default', icon: <ArrowUp className="mr-1 h-3 w-3" /> },
-  Withdrawal: { variant: 'destructive', icon: <ArrowDown className="mr-1 h-3 w-3" /> },
-};
-
-const columns: {
-    header: string;
-    id: keyof CapitalEntry | 'actions';
-    cell?: (row: CapitalEntry) => React.ReactNode;
-}[] = [
-  { id: 'createdAt', header: 'Entry Date', cell: ({ createdAt }: CapitalEntry) => formatDate(createdAt)},
-  { id: 'transactionDate', header: 'Transaction Date', cell: ({ transactionDate }: CapitalEntry) => formatDate(transactionDate) },
-  { id: 'type', header: 'Type', cell: ({ type }: CapitalEntry) => {
-        const config = typeConfigMap[type];
-        return <Badge variant={config.variant} className="capitalize items-center">{config.icon}{type}</Badge>;
-    }},
-  { id: 'amount', header: 'Amount', cell: ({ amount, type }: CapitalEntry) => (
-      <span className={type === 'Withdrawal' ? 'text-destructive' : 'text-green-600'}>
-          {type === 'Withdrawal' ? '-' : '+'}
-          {amount.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
-      </span>
-  )},
-  { id: 'source', header: 'Source' },
-  { id: 'submittedBy', header: 'Submitted By' },
-  { id: 'actions', header: 'Actions', cell: (entry: CapitalEntry) => <ActionsCell entry={entry} />},
-];
 
 // --- Data Table Component ---
 interface DataTableProps {
@@ -148,24 +50,30 @@ export function CapitalDataTable({ data, isLoading }: DataTableProps) {
     });
   });
 
-  const renderMobileCard = (row: CapitalEntry) => (
-    <Card key={row.id} className="mb-4">
-      <CardContent className="p-4 space-y-2">
-        <div className="flex justify-between items-start">
-            <div>
-                <p className="font-bold">{row.source}</p>
-                <p className="text-sm text-muted-foreground">{formatDate(row.transactionDate)}</p>
+  const renderMobileCard = (row: CapitalEntry) => {
+    const actionsCell = columns.find(c => c.id === 'actions');
+    const typeCell = columns.find(c => c.id === 'type');
+    const amountCell = columns.find(c => c.id === 'amount');
+
+    return (
+        <Card key={row.id} className="mb-4">
+        <CardContent className="p-4 space-y-2">
+            <div className="flex justify-between items-start">
+                <div>
+                    <p className="font-bold">{row.source}</p>
+                    <p className="text-sm text-muted-foreground">{formatDate(row.transactionDate)}</p>
+                </div>
+                {actionsCell?.cell?.(row)}
             </div>
-            <ActionsCell entry={row} />
-        </div>
-        <div className="flex justify-between items-center">
-          {columns.find(c => c.id === 'type')?.cell?.(row)}
-          {columns.find(c => c.id === 'amount')?.cell?.(row)}
-        </div>
-        <p className="text-xs text-muted-foreground pt-2">Submitted by: {row.submittedBy}</p>
-      </CardContent>
-    </Card>
-  );
+            <div className="flex justify-between items-center">
+              {typeCell?.cell?.(row)}
+              {amountCell?.cell?.(row)}
+            </div>
+            <p className="text-xs text-muted-foreground pt-2">Submitted by: {row.submittedBy}</p>
+        </CardContent>
+        </Card>
+    );
+  }
 
   return (
     <div>
