@@ -34,7 +34,7 @@ export type CapitalEntry = {
   id: string;
   createdAt: string; // ISO 8601 string date
   transactionDate: string; // ISO 8601 string date
-  type: 'payout' | 'loan' | 'personal';
+  type: 'payout' | 'loan';
   amount: number;
   source: string;
   submittedBy: string; // email or UID

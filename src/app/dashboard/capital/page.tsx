@@ -9,7 +9,7 @@ export default async function CapitalPage() {
   const entries = await getCapitalEntries();
   const totalCapital = entries.reduce((sum, entry) => sum + entry.amount, 0);
   const totalLoans = entries.filter(e => e.type === 'loan').reduce((sum, entry) => sum + entry.amount, 0);
-  const pureCapital = entries.filter(e => ['payout', 'personal'].includes(e.type)).reduce((sum, entry) => sum + entry.amount, 0);
+  const pureCapital = entries.filter(e => e.type === 'payout').reduce((sum, entry) => sum + entry.amount, 0);
 
 
   return (
@@ -54,7 +54,7 @@ export default async function CapitalPage() {
 
         <Card className="shadow-md bg-primary/10 border-primary/50 col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-primary/80">Pure Capital (Payouts & Personal)</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary/80">Pure Capital (Payouts)</CardTitle>
             <PiggyBank className="h-5 w-5 text-primary/80" />
           </CardHeader>
           <CardContent>

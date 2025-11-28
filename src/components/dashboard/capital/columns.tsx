@@ -72,10 +72,9 @@ function ActionsCell({ entry }: { entry: CapitalEntry }) {
   );
 }
 
-const typeVariantMap: { [key in CapitalEntry['type']]: "default" | "secondary" | "outline" } = {
+const typeVariantMap: { [key in CapitalEntry['type']]: "default" | "secondary" | "destructive" | "outline" } = {
   payout: 'default',
   loan: 'destructive',
-  personal: 'secondary',
 };
 
 export const columns: {
