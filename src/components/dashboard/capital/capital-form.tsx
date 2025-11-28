@@ -31,7 +31,7 @@ const formSchema = z.object({
   type: z.enum(['payout', 'loan', 'personal']),
   amount: z.coerce.number().positive('Amount must be a positive number.'),
   source: z.string().min(1, 'Source is required.'),
-  referenceId: z.string().optional(),
+  transactionDate: z.string().min(1, 'Transaction date is required.'),
   submittedBy: z.string().min(1, 'Submitter is required.'),
   notes: z.string().optional(),
 });
@@ -54,7 +54,7 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
       type: 'payout',
       amount: 0,
       source: 'Etsy',
-      referenceId: '',
+      transactionDate: new Date().toISOString().split('T')[0],
       submittedBy: currentUserEmail,
       notes: '',
     },
@@ -130,17 +130,17 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
                 )}
             />
             <FormField
-                control={form.control}
-                name="referenceId"
-                render={({ field }) => (
+              control={form.control}
+              name="transactionDate"
+              render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Reference ID</FormLabel>
-                    <FormControl>
-                    <Input placeholder="Optional payout ID" {...field} />
-                    </FormControl>
-                    <FormMessage />
+                  <FormLabel>Transaction Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
-                )}
+              )}
             />
         </div>
         <FormField

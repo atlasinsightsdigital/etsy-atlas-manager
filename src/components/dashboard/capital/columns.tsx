@@ -84,8 +84,12 @@ export const columns: {
     cell?: (row: CapitalEntry) => React.ReactNode;
 }[] = [
   {
-    header: 'Date',
+    header: 'Entry Date',
     cell: ({ createdAt }: CapitalEntry) => format(new Date(createdAt), 'dd MMM yyyy'),
+  },
+  {
+    header: 'Transaction Date',
+    cell: ({ transactionDate }: CapitalEntry) => format(new Date(transactionDate), 'dd MMM yyyy'),
   },
   {
     header: 'Type',
@@ -101,10 +105,6 @@ export const columns: {
   {
     header: 'Source',
     accessorKey: 'source',
-  },
-  {
-    header: 'Reference ID',
-    accessorKey: 'referenceId',
   },
   {
     header: 'Submitted By',

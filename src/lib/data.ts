@@ -154,6 +154,7 @@ export const capitalEntries: CapitalEntry[] = [
   {
     id: '1',
     createdAt: '2023-10-01T10:00:00Z',
+    transactionDate: '2023-10-01',
     type: 'personal',
     amount: 5000,
     source: 'Admin User',
@@ -164,10 +165,10 @@ export const capitalEntries: CapitalEntry[] = [
   {
     id: '2',
     createdAt: '2023-10-15T12:00:00Z',
+    transactionDate: '2023-10-15',
     type: 'payout',
     amount: 1250.75,
     source: 'Etsy',
-    referenceId: 'payout-oct-1',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'First Etsy payout for October.',
     locked: true,
@@ -175,10 +176,10 @@ export const capitalEntries: CapitalEntry[] = [
   {
     id: '3',
     createdAt: '2023-11-01T11:30:00Z',
+    transactionDate: '2023-11-01',
     type: 'loan',
     amount: 10000,
     source: 'Local Bank',
-    referenceId: 'loan-agreement-112',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'Small business loan for scaling.',
     locked: true,
