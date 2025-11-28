@@ -1,5 +1,4 @@
 'use client';
-import { useMemo } from 'react';
 import { useCollection } from '@/firebase';
 import { OrdersDataTable } from '@/components/dashboard/orders/data-table';
 import type { Order } from '@/lib/definitions';
@@ -9,10 +8,7 @@ import { collection, query } from 'firebase/firestore';
 export default function OrdersPage() {
   const firestore = useFirestore();
 
-  const ordersQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'orders'));
-  }, [firestore]);
+  const ordersQuery = firestore ? query(collection(firestore, 'orders')) : null;
   
   const { data: orders, isLoading } = useCollection<Order>(ordersQuery);
 

@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { useCollection } from '@/firebase';
 import { CapitalDataTable } from '@/components/dashboard/capital/data-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,10 +11,7 @@ import { useFirestore } from '@/firebase';
 export default function CapitalPage() {
   const firestore = useFirestore();
   
-  const capitalQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'capital'));
-  }, [firestore]);
+  const capitalQuery = firestore ? query(collection(firestore, 'capital')) : null;
 
   const { data: entries, isLoading } = useCollection<CapitalEntry>(capitalQuery);
 
