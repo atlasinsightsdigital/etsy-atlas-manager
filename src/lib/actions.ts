@@ -8,21 +8,32 @@ import {
   updateDoc,
   deleteDoc,
   setDoc,
+  Firestore,
 } from 'firebase/firestore';
 import { getFirestore } from '@/firebase/server-init';
 import { getAuth } from 'firebase-admin/auth';
 import { Timestamp } from 'firebase/firestore';
 
+// --- Helper function to ensure Firestore is initialized ---
+let firestore: Firestore;
+async function getDb() {
+  if (!firestore) {
+    firestore = getFirestore();
+  }
+  return firestore;
+}
+
+
 // ORDER ACTIONS
 export async function addOrder(order: Omit<Order, 'id'>) {
-  const firestore = getFirestore();
+  const db = await getDb();
   const newOrder = {
     ...order,
     createdAt: Timestamp.now(),
     updatedAt: Timestamp.now(),
   };
   try {
-    await addDoc(collection(firestore, 'orders'), newOrder);
+    await addDoc(collection(db, 'orders'), newOrder);
   } catch (error) {
     console.error("Firestore 'addOrder' Error:", error);
     throw new Error('Failed to create order. Please check permissions and data.');
@@ -30,8 +41,8 @@ export async function addOrder(order: Omit<Order, 'id'>) {
 }
 
 export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) {
-  const firestore = getFirestore();
-  const orderRef = doc(firestore, 'orders', id);
+  const db = await getDb();
+  const orderRef = doc(db, 'orders', id);
   const updateData = {
     ...data,
     updatedAt: Timestamp.now(),
@@ -45,8 +56,8 @@ export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) 
 }
 
 export async function deleteOrder(id: string) {
-  const firestore = getFirestore();
-  const orderRef = doc(firestore, 'orders', id);
+  const db = await getDb();
+  const orderRef = doc(db, 'orders', id);
   try {
     await deleteDoc(orderRef);
   } catch (error) {
@@ -57,13 +68,13 @@ export async function deleteOrder(id: string) {
 
 // CAPITAL ACTIONS
 export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdAt'>) {
-  const firestore = getFirestore();
+  const db = await getDb();
   const newEntry = {
     ...entry,
     createdAt: Timestamp.now(),
   };
   try {
-    await addDoc(collection(firestore, 'capital'), newEntry);
+    await addDoc(collection(db, 'capital'), newEntry);
   } catch (error) {
     console.error("Firestore 'addCapitalEntry' Error:", error);
     throw new Error('Failed to add capital entry. Please check permissions and data.');
@@ -71,8 +82,8 @@ export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdA
 }
 
 export async function deleteCapitalEntry(id: string) {
-  const firestore = getFirestore();
-  const capitalRef = doc(firestore, 'capital', id);
+  const db = await getDb();
+  const capitalRef = doc(db, 'capital', id);
   try {
     await deleteDoc(capitalRef);
   } catch (error) {
