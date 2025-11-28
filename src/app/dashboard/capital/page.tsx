@@ -1,7 +1,6 @@
 
 import { getCapitalEntries } from '@/lib/actions';
 import { CapitalDataTable } from '@/components/dashboard/capital/data-table';
-import { columns } from '@/components/dashboard/capital/columns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Landmark, PiggyBank, Scale, TrendingDown } from 'lucide-react';
 
@@ -32,14 +31,14 @@ export default async function CapitalPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight font-headline">Capital Management</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Capital Management</h1>
         <p className="text-muted-foreground">
           Track all capital movements like payouts, loans, and personal injections.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="shadow-md col-span-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="shadow-md sm:col-span-2 lg:col-span-4">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Capital</CardTitle>
             <Landmark className="h-5 w-5 text-muted-foreground" />
@@ -69,7 +68,7 @@ export default async function CapitalPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-md bg-primary/10 border-primary/50 col-span-2">
+        <Card className="shadow-md bg-primary/10 border-primary/50 sm:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-primary/80">Pure Capital (Net)</CardTitle>
             <PiggyBank className="h-5 w-5 text-primary/80" />
@@ -100,7 +99,7 @@ export default async function CapitalPage() {
         </Card>
       </div>
 
-      <CapitalDataTable columns={columns} data={entries} />
+      <CapitalDataTable data={entries} />
     </div>
   );
 }

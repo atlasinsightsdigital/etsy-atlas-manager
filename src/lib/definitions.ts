@@ -1,10 +1,10 @@
 
 export type User = {
-  id: string; // This will serve as the uid
-  name: string; // This will serve as the displayName
+  id: string; 
+  name: string; 
   email: string;
   role: 'admin' | 'user';
-  createdAt: string; // Using string to represent timestamp for simplicity
+  createdAt: string; 
 };
 
 export type Order = {
@@ -32,12 +32,12 @@ export type Product = {
 
 export type CapitalEntry = {
   id: string;
-  createdAt: string; // ISO 8601 string date
-  transactionDate: string; // ISO 8601 string date
+  createdAt: string; 
+  transactionDate: string;
   type: 'payout' | 'loan' | 'withdraw';
   amount: number;
   source: string;
-  submittedBy: string; // email or UID
+  submittedBy: string; 
   notes?: string;
   locked: boolean;
 };

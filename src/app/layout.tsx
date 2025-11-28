@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 export const metadata: Metadata = {
   title: 'Etsy Atlas Manager',
   description: 'Manage your Etsy store with ease.',
+  viewport: 'width=device-width, initial-scale=1',
 };
 
 export default function RootLayout({

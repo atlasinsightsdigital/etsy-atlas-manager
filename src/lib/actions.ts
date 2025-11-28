@@ -1,53 +1,11 @@
 
 'use server';
 
-import { z } from 'zod';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { users as mockUsers, orders as mockOrders, products as mockProducts, capitalEntries as mockCapitalEntries } from '@/lib/data';
 import type { Order, Product, User, CapitalEntry } from './definitions';
 
-// AUTH ACTIONS
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
-export async function authenticate(prevState: string | undefined, formData: FormData) {
-  try {
-    const { email, password } = loginSchema.parse(Object.fromEntries(formData.entries()));
-    const user = mockUsers.find((u) => u.email === email);
-
-    // This is a mock authentication. In a real app, you'd check a hashed password.
-    if (!user) {
-      return 'Invalid email or password.';
-    }
-
-    const sessionData = { id: user.id, email: user.email, name: user.name, role: user.role };
-    
-    cookies().set('session', JSON.stringify(sessionData), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 60 * 60 * 24 * 7, // One week
-      path: '/',
-    });
-
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return 'Invalid form data.';
-    }
-    return 'Something went wrong.';
-  }
-
-  redirect('/dashboard');
-}
-
-export async function logout() {
-  cookies().delete('session');
-  redirect('/');
-}
-
-// Data management (mock)
+// Data is stored in memory and reset on server restart.
+// In a real application, this would be a database.
 let orders: Order[] = [...mockOrders];
 let products: Product[] = [...mockProducts];
 let users: User[] = [...mockUsers];
@@ -56,18 +14,20 @@ let capitalEntries: CapitalEntry[] = [...mockCapitalEntries];
 
 // USER ACTIONS
 export async function getUsers() {
+  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
   return users;
 }
 
 // ORDER ACTIONS
 export async function getOrders() {
+  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
   return orders;
 }
 
 export async function addOrder(order: Omit<Order, 'id'>) {
     const newId = (Math.max(...orders.map(o => parseInt(o.id)), 0) + 1).toString();
     const newOrder: Order = { ...order, id: newId };
-    orders.push(newOrder);
+    orders.unshift(newOrder); // Add to the beginning of the array
     return newOrder;
 }
 
@@ -88,13 +48,14 @@ export async function deleteOrder(id: string) {
 
 // PRODUCT ACTIONS
 export async function getProducts() {
+  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
   return products;
 }
 
 export async function addProduct(product: Omit<Product, 'id'>) {
     const newId = (Math.max(...products.map(p => parseInt(p.id)), 0) + 1).toString();
     const newProduct: Product = { ...product, id: newId };
-    products.push(newProduct);
+    products.unshift(newProduct);
     return newProduct;
 }
 
@@ -114,6 +75,7 @@ export async function deleteProduct(id: string) {
 
 // CAPITAL ACTIONS
 export async function getCapitalEntries() {
+  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
   return capitalEntries;
 }
 
@@ -125,11 +87,11 @@ export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdA
       createdAt: new Date().toISOString(),
       locked: true
     };
-    capitalEntries.push(newEntry);
+    capitalEntries.unshift(newEntry);
     return newEntry;
 }
 
 export async function deleteCapitalEntry(id: string) {
-    capitalEntries = capitalEntries.filter(e => e.id !== id);
+    capitalEntries = capitalEntries.filter(e => e.id !== id && !e.locked);
     return { success: true };
 }

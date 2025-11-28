@@ -8,12 +8,12 @@ import {
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarFooter,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
   ShoppingCart,
   Users,
+  Package,
   Landmark,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,11 @@ export function DashboardSidebar() {
       href: '/dashboard/orders',
       label: 'Orders',
       icon: ShoppingCart,
+    },
+    {
+      href: '/dashboard/products',
+      label: 'Products',
+      icon: Package,
     },
     {
       href: '/dashboard/capital',
@@ -96,8 +101,6 @@ export function DashboardSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
-      </SidebarFooter>
     </>
   );
 }

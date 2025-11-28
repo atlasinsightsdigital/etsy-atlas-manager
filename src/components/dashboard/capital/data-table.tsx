@@ -1,7 +1,23 @@
 
 'use client';
-
 import * as React from 'react';
+import { MoreHorizontal, Trash2, ArrowDown, ArrowUp, Banknote } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import type { CapitalEntry } from '@/lib/definitions';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { deleteCapitalEntry } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 import {
   Table,
   TableBody,
@@ -11,7 +27,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import {
   Dialog,
@@ -22,18 +37,95 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { CapitalEntryForm } from './capital-form';
-import type { CapitalEntry } from '@/lib/definitions';
+import { Card, CardContent } from '@/components/ui/card';
 
-interface DataTableProps {
-  columns: Array<{
+// --- Columns Definition ---
+function ActionsCell({ entry }: { entry: CapitalEntry }) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isPending, startTransition] = React.useTransition();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      await deleteCapitalEntry(entry.id);
+      toast({ title: 'Success', description: 'Capital entry deleted successfully.' });
+      setIsDeleteDialogOpen(false);
+      router.refresh();
+    });
+  };
+  
+  return (
+    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <AlertDialogTrigger asChild>
+            <DropdownMenuItem className="text-destructive focus:text-destructive" disabled={entry.locked}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </AlertDialogTrigger>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete this capital entry.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete} disabled={isPending}>Continue</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+const typeConfigMap: { [key in CapitalEntry['type']]: { variant: "default" | "secondary" | "destructive" | "outline", icon: React.ReactNode } } = {
+  payout: { variant: 'default', icon: <ArrowUp className="mr-1 h-3 w-3" /> },
+  loan: { variant: 'destructive', icon: <Banknote className="mr-1 h-3 w-3" /> },
+  withdraw: { variant: 'secondary', icon: <ArrowDown className="mr-1 h-3 w-3" /> },
+};
+
+const columns: {
     header: string;
-    accessorKey?: keyof CapitalEntry;
+    id: keyof CapitalEntry | 'actions';
     cell?: (row: CapitalEntry) => React.ReactNode;
-  }>;
+}[] = [
+  { id: 'createdAt', header: 'Entry Date', cell: ({ createdAt }: CapitalEntry) => format(new Date(createdAt), 'dd MMM yyyy')},
+  { id: 'transactionDate', header: 'Transaction Date', cell: ({ transactionDate }: CapitalEntry) => format(new Date(transactionDate), 'dd MMM yyyy') },
+  { id: 'type', header: 'Type', cell: ({ type }: CapitalEntry) => {
+        const config = typeConfigMap[type] || { variant: 'outline', icon: null };
+        return <Badge variant={config.variant} className="capitalize items-center">{config.icon}{type}</Badge>;
+    }},
+  { id: 'amount', header: 'Amount', cell: ({ amount, type }: CapitalEntry) => (
+      <span className={type === 'withdraw' ? 'text-destructive' : 'text-green-600'}>
+          {type === 'withdraw' ? '-' : '+'}
+          {amount.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
+      </span>
+  )},
+  { id: 'source', header: 'Source' },
+  { id: 'submittedBy', header: 'Submitted By' },
+  { id: 'actions', header: 'Actions', cell: (entry: CapitalEntry) => <ActionsCell entry={entry} />},
+];
+
+// --- Data Table Component ---
+interface DataTableProps {
   data: CapitalEntry[];
 }
 
-export function CapitalDataTable({ columns, data }: DataTableProps) {
+export function CapitalDataTable({ data }: DataTableProps) {
   const [filter, setFilter] = React.useState('');
   const [open, setOpen] = React.useState(false);
 
@@ -43,18 +135,37 @@ export function CapitalDataTable({ columns, data }: DataTableProps) {
     )
   );
 
+  const renderMobileCard = (row: CapitalEntry) => (
+    <Card key={row.id} className="mb-4">
+      <CardContent className="p-4 space-y-2">
+        <div className="flex justify-between items-start">
+            <div>
+                <p className="font-bold">{row.source}</p>
+                <p className="text-sm text-muted-foreground">{format(new Date(row.transactionDate), 'dd MMM yyyy')}</p>
+            </div>
+            <ActionsCell entry={row} />
+        </div>
+        <div className="flex justify-between items-center">
+          {columns.find(c => c.id === 'type')?.cell?.(row)}
+          {columns.find(c => c.id === 'amount')?.cell?.(row)}
+        </div>
+        <p className="text-xs text-muted-foreground pt-2">Submitted by: {row.submittedBy}</p>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div>
-      <div className="flex items-center justify-between py-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between py-4 gap-2">
         <Input
           placeholder="Filter entries..."
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
-          className="max-w-sm"
+          className="w-full sm:max-w-sm"
         />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <PlusCircle className="mr-2 h-4 w-4" />
               New Entry
             </Button>
@@ -70,12 +181,23 @@ export function CapitalDataTable({ columns, data }: DataTableProps) {
           </DialogContent>
         </Dialog>
       </div>
-      <div className="rounded-md border">
+      
+      {/* Mobile View */}
+      <div className="sm:hidden">
+        {filteredData.length > 0 ? (
+            filteredData.map(renderMobileCard)
+        ) : (
+            <p className="text-center text-muted-foreground py-8">No results.</p>
+        )}
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden sm:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={column.header}>{column.header}</TableHead>
+                <TableHead key={column.id}>{column.header}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
@@ -84,12 +206,10 @@ export function CapitalDataTable({ columns, data }: DataTableProps) {
               filteredData.map((row) => (
                 <TableRow key={row.id}>
                   {columns.map((column) => (
-                    <TableCell key={column.header}>
+                    <TableCell key={column.id}>
                       {column.cell
                         ? column.cell(row)
-                        : column.accessorKey
-                        ? String(row[column.accessorKey] ?? '')
-                        : ''}
+                        : String(row[column.id as keyof CapitalEntry] ?? '')}
                     </TableCell>
                   ))}
                 </TableRow>

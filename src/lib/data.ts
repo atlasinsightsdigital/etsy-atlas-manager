@@ -7,14 +7,14 @@ export const users: User[] = [
     name: 'Admin User',
     email: 'admin@etsyatlas.com',
     role: 'admin',
-    createdAt: '2023-10-01T10:00:00Z',
+    createdAt: '2023-10-01',
   },
   {
     id: '2',
     name: 'Store Manager',
     email: 'manager@etsyatlas.com',
     role: 'user',
-    createdAt: '2023-10-05T14:30:00Z',
+    createdAt: '2023-10-05',
   },
 ];
 

@@ -45,7 +45,6 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // TODO: Replace with actual logged-in user email
   const currentUserEmail = 'admin@etsyatlas.com';
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -82,7 +81,7 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="type"
@@ -129,7 +128,7 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
               )}
           />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="transactionDate"

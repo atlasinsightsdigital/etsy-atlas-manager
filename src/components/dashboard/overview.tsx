@@ -57,41 +57,43 @@ export function Overview({ orders }: OverviewProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-6">
       <div className="lg:col-span-4">
         <AiSummary {...aiSummaryInput} />
       </div>
-
-      <StatCard
-        title="Total Revenue"
-        value={totalRevenue.toLocaleString('fr-MA', {
-          style: 'currency',
-          currency: 'MAD',
-        })}
-        icon={<DollarSign />}
-        description="Total revenue from all sales."
-      />
-      <StatCard
-        title="Profit Margin"
-        value={`${profitMargin.toFixed(1)}%`}
-        icon={<TrendingUp />}
-        description="Net profit as a percentage of revenue."
-      />
-      <StatCard
-        title="Total Orders"
-        value={`+${totalOrders}`}
-        icon={<Package />}
-        description="Total number of orders."
-      />
-       <StatCard
-        title="Total Profit"
-        value={totalProfit.toLocaleString('fr-MA', {
-          style: 'currency',
-          currency: 'MAD',
-        })}
-        icon={<CreditCard />}
-        description="Total profit after all expenses."
-      />
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title="Total Revenue"
+          value={totalRevenue.toLocaleString('fr-MA', {
+            style: 'currency',
+            currency: 'MAD',
+          })}
+          icon={<DollarSign />}
+          description="Total revenue from all sales."
+        />
+        <StatCard
+          title="Total Profit"
+          value={totalProfit.toLocaleString('fr-MA', {
+            style: 'currency',
+            currency: 'MAD',
+          })}
+          icon={<CreditCard />}
+          description="Total profit after all expenses."
+        />
+        <StatCard
+          title="Profit Margin"
+          value={`${profitMargin.toFixed(1)}%`}
+          icon={<TrendingUp />}
+          description="Net profit as a percentage of revenue."
+        />
+        <StatCard
+          title="Total Orders"
+          value={`+${totalOrders}`}
+          icon={<Package />}
+          description="Total number of orders."
+        />
+      </div>
 
       <Card className="lg:col-span-4 shadow-md">
         <CardHeader>
@@ -107,10 +109,14 @@ export function Overview({ orders }: OverviewProps) {
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
+                stroke="hsl(var(--muted-foreground))"
+                tick={{ fontSize: 12 }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
+                stroke="hsl(var(--muted-foreground))"
+                tick={{ fontSize: 12 }}
                 tickFormatter={(value) => `${value / 1000}K`}
               />
               <ChartTooltip
