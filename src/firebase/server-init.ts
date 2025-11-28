@@ -1,9 +1,8 @@
-
 import { initializeApp, getApps, getApp, cert, App } from 'firebase-admin/app';
 import { getFirestore as getFirestoreAdmin, Firestore } from 'firebase-admin/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
-// This file is for SERVER-SIDE initialization only.
+// Ce fichier est pour l'initialisation CÔTÉ SERVEUR uniquement.
 
 let app: App;
 let firestore: Firestore;
@@ -14,16 +13,15 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
 
 if (!getApps().length) {
   if (serviceAccount) {
-    // Production/Vercel environment with service account
+    // Environnement de production avec un compte de service
     app = initializeApp({
       credential: cert(serviceAccount),
       projectId: firebaseConfig.projectId,
     });
   } else {
-    // Local development - re-uses client-side config but with admin privileges.
-    // Ensure FIREBASE_AUTH_EMULATOR_HOST is set in your .env.local file
-    // for this to work correctly with emulators.
-    console.log("Initializing Firebase Admin SDK for local development. Make sure emulators are running.");
+    // Environnement local ou un environnement où le compte de service n'est pas défini.
+    // L'initialisation avec seulement le projectId est suffisante pour de nombreux cas d'utilisation côté serveur
+    // lorsque les variables d'environnement par défaut de Google Cloud sont présentes.
     app = initializeApp({
         projectId: firebaseConfig.projectId
     });
