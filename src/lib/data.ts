@@ -1,3 +1,4 @@
+
 import type { User, Order, Product } from './definitions';
 
 export const users: User[] = [
@@ -5,17 +6,15 @@ export const users: User[] = [
     id: '1',
     name: 'Admin User',
     email: 'admin@etsyatlas.com',
-    password: 'password123',
     role: 'admin',
-    avatarUrl: '/avatars/01.png',
+    createdAt: '2023-10-01T10:00:00Z',
   },
   {
     id: '2',
     name: 'Store Manager',
     email: 'manager@etsyatlas.com',
-    password: 'password123',
     role: 'user',
-    avatarUrl: '/avatars/02.png',
+    createdAt: '2023-10-05T14:30:00Z',
   },
 ];
 

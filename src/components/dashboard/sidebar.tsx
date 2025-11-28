@@ -1,3 +1,4 @@
+
 'use client';
 import React from 'react';
 import Link from 'next/link';
@@ -12,6 +13,7 @@ import {
 import {
   LayoutDashboard,
   ShoppingCart,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -28,6 +30,11 @@ export function DashboardSidebar() {
       href: '/dashboard/orders',
       label: 'Orders',
       icon: ShoppingCart,
+    },
+    {
+      href: '/dashboard/users',
+      label: 'Users',
+      icon: Users,
     },
   ];
 

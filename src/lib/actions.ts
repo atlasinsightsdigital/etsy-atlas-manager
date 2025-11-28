@@ -1,10 +1,11 @@
+
 'use server';
 
 import { z } from 'zod';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { users, orders as mockOrders, products as mockProducts } from '@/lib/data';
-import type { Order, Product } from './definitions';
+import { users as mockUsers, orders as mockOrders, products as mockProducts } from '@/lib/data';
+import type { Order, Product, User } from './definitions';
 
 // AUTH ACTIONS
 const loginSchema = z.object({
@@ -15,13 +16,14 @@ const loginSchema = z.object({
 export async function authenticate(prevState: string | undefined, formData: FormData) {
   try {
     const { email, password } = loginSchema.parse(Object.fromEntries(formData.entries()));
-    const user = users.find((u) => u.email === email);
+    const user = mockUsers.find((u) => u.email === email);
 
-    if (!user || user.password !== password) {
+    // This is a mock authentication. In a real app, you'd check a hashed password.
+    if (!user) {
       return 'Invalid email or password.';
     }
 
-    const sessionData = { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: user.avatarUrl };
+    const sessionData = { id: user.id, email: user.email, name: user.name, role: user.role };
     
     cookies().set('session', JSON.stringify(sessionData), {
       httpOnly: true,
@@ -48,6 +50,13 @@ export async function logout() {
 // Data management (mock)
 let orders: Order[] = [...mockOrders];
 let products: Product[] = [...mockProducts];
+let users: User[] = [...mockUsers];
+
+
+// USER ACTIONS
+export async function getUsers() {
+  return users;
+}
 
 // ORDER ACTIONS
 export async function getOrders() {

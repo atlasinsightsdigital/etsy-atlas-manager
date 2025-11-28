@@ -1,10 +1,10 @@
+
 export type User = {
-  id: string;
-  name: string;
+  id: string; // This will serve as the uid
+  name: string; // This will serve as the displayName
   email: string;
-  password?: string;
   role: 'admin' | 'user';
-  avatarUrl: string;
+  createdAt: string; // Using string to represent timestamp for simplicity
 };
 
 export type Order = {
