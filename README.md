@@ -24,7 +24,7 @@ Ce projet fournit une base solide pour un tableau de bord d'analyse et de gestio
     -   **Base de données**: [Cloud Firestore](https://firebase.google.com/docs/firestore) est utilisé comme base de données NoSQL.
     -   **Fonctions Serverless**: [Cloud Functions for Firebase](https://firebase.google.com/docs/functions) pour la logique backend automatisée (ex: calculs sur les commandes).
 -   **Déploiement**:
-    -   Le frontend et les fonctions sont hébergés sur [Firebase Hosting](https://firebase.google.com/docs/hosting).
+    -   L'ensemble de l'application (frontend et fonctions) est hébergé sur [Firebase](https://firebase.google.com/).
     -   Un workflow GitHub Actions est inclus pour l'intégration et le déploiement continus (CI/CD).
 -   **IA Générative**: Utilise [Genkit](https://firebase.google.com/docs/genkit) pour intégrer des fonctionnalités d'IA, comme les résumés de performance.
 
@@ -198,7 +198,7 @@ Stocke les informations sur les produits de votre boutique.
 
 ### 7. Déploiement continu avec GitHub Actions (CI/CD)
 
-Le fichier `.github/workflows/deploy.yml` est configuré pour déployer votre application sur Vercel (pour le frontend) et vos fonctions sur Firebase.
+Le fichier `.github/workflows/deploy.yml` est configuré pour déployer l'ensemble de votre application (frontend et fonctions) sur Firebase.
 
 **Pour le faire fonctionner :**
 
@@ -207,7 +207,6 @@ Le fichier `.github/workflows/deploy.yml` est configuré pour déployer votre ap
 2.  **Configurez les secrets dans GitHub**:
     -   Allez dans les paramètres de votre dépôt > `Secrets and variables` > `Actions`.
     -   Créez les secrets suivants :
-        -   `VERCEL_TOKEN`: Votre jeton d'accès personnel Vercel.
         -   `FIREBASE_TOKEN`: Obtenez-le en exécutant `firebase login:ci` dans votre terminal.
         -   `FIREBASE_PROJECT_ID`: L'ID de votre projet Firebase.
 
