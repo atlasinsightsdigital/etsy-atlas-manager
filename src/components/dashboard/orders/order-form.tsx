@@ -112,7 +112,7 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
                 <FormItem>
                   <FormLabel>Order Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} disabled={!!order} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -153,7 +153,7 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
                 <FormItem>
                     <FormLabel>Order Price</FormLabel>
                     <FormControl>
-                    <Input type="number" step="0.01" {...field} />
+                    <Input type="number" step="0.01" {...field} disabled={!!order} />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
