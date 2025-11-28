@@ -36,6 +36,7 @@ const formSchema = z.object({
   shippingCost: z.coerce.number().min(0, 'Cannot be negative'),
   additionalFees: z.coerce.number().min(0, 'Cannot be negative'),
   notes: z.string().optional(),
+  trackingNumber: z.string().optional(),
 });
 
 type OrderFormProps = {
@@ -62,6 +63,7 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
       shippingCost: 0,
       additionalFees: 0,
       notes: '',
+      trackingNumber: '',
     },
   });
 
@@ -140,6 +142,19 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
                       <SelectItem value="Cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="trackingNumber"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Tracking Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="1Z999AA10123456789" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

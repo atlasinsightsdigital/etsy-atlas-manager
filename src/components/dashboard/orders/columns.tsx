@@ -131,6 +131,10 @@ export const columns: {
         );
     },
   },
+    {
+    header: 'Tracking Number',
+    accessorKey: 'trackingNumber',
+  },
   {
     header: 'Total Price',
     cell: ({orderPrice}: Order) => orderPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),

@@ -17,6 +17,7 @@ export type Order = {
   shippingCost: number;
   additionalFees: number;
   notes?: string;
+  trackingNumber?: string;
 };
 
 export type Product = {

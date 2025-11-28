@@ -30,6 +30,7 @@ export const orders: Order[] = [
     shippingCost: 15.0,
     additionalFees: 5.0,
     notes: 'Customer requested gift wrapping.',
+    trackingNumber: '1Z999AA10123456789',
   },
   {
     id: '2',
@@ -41,6 +42,7 @@ export const orders: Order[] = [
     shippingCost: 20.0,
     additionalFees: 7.5,
     notes: 'Fragile item, handle with care.',
+    trackingNumber: '1Z999AA10198765432',
   },
   {
     id: '3',
@@ -63,6 +65,7 @@ export const orders: Order[] = [
     shippingCost: 30.0,
     additionalFees: 15.0,
     notes: '',
+    trackingNumber: '1Z999AA10111223344',
   },
   {
     id: '5',
@@ -85,6 +88,7 @@ export const orders: Order[] = [
     shippingCost: 12.0,
     additionalFees: 4.0,
     notes: '',
+    trackingNumber: '1Z999AA10155667788',
   },
   {
     id: '7',
