@@ -2,9 +2,11 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore } from 'firebase/firestore';
+import { Firestore, doc, getDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import type { User as AppUser } from '@/lib/definitions';
+
 
 interface FirebaseServices {
   firebaseApp: FirebaseApp;
@@ -18,7 +20,7 @@ interface FirebaseProviderProps extends FirebaseServices {
 
 // Separate state for user authentication to prevent re-rendering service consumers
 interface UserAuthState {
-  user: User | null;
+  user: (User & AppUser) | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -61,8 +63,33 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      (firebaseUser) => {
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+      async (firebaseUser) => {
+        if (firebaseUser) {
+          // User is signed in, fetch their profile from Firestore
+          const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+          try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              // Combine auth user and firestore user data
+              const appUser = userDoc.data() as AppUser;
+              setUserAuthState({ 
+                user: { ...firebaseUser, ...appUser }, 
+                isUserLoading: false, 
+                userError: null 
+              });
+            } else {
+              // App user profile doesn't exist, might be a new sign-up
+              // For now, just use the auth user
+               setUserAuthState({ user: firebaseUser as (User & AppUser), isUserLoading: false, userError: null });
+            }
+          } catch (error) {
+             console.error("FirebaseProvider: Error fetching user profile:", error);
+             setUserAuthState({ user: firebaseUser as (User & AppUser), isUserLoading: false, userError: error as Error });
+          }
+        } else {
+          // User is signed out
+          setUserAuthState({ user: null, isUserLoading: false, userError: null });
+        }
       },
       (error) => {
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
@@ -71,7 +98,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     );
 
     return () => unsubscribe();
-  }, [auth]);
+  }, [auth, firestore]);
 
   // CRITICAL FIX: The core services (app, firestore, auth) are memoized separately.
   // Their reference will NOT change when userAuthState changes.

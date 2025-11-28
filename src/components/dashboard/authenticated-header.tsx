@@ -48,12 +48,13 @@ export default function AuthenticatedHeader() {
     }
   };
 
-  const userInitial = user?.displayName ? user.displayName.charAt(0).toUpperCase() : user?.email ? user.email.charAt(0).toUpperCase() : '?';
+  const displayName = user?.name || user?.displayName || user?.email;
+  const userInitial = displayName ? displayName.charAt(0).toUpperCase() : '?';
 
   return (
     <div className="flex w-full items-center justify-end gap-4 text-sm">
       <div className="text-right">
-        <p className="font-semibold text-foreground">Hi, {user ? (user.displayName || user.email) : '...'}</p>
+        <p className="font-semibold text-foreground">Hi, {isUserLoading ? '...' : displayName}</p>
         <p className="text-muted-foreground">{formattedDate}</p>
       </div>
       <div className="text-lg font-mono tracking-tighter rounded-md bg-muted px-2 py-1 min-w-[80px] text-center">
@@ -72,10 +73,10 @@ export default function AuthenticatedHeader() {
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">
-                {isUserLoading ? 'Loading...' : user?.displayName || user?.email}
+                {isUserLoading ? 'Loading...' : displayName}
               </p>
               <p className="text-xs leading-none text-muted-foreground">
-                {isUserLoading ? '' : 'Administrator'}
+                {isUserLoading ? '' : user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User'}
               </p>
             </div>
           </DropdownMenuLabel>
