@@ -1,24 +1,21 @@
 import type { User, Order, CapitalEntry } from './definitions';
-import { serverTimestamp } from 'firebase/firestore';
 
-export const users: User[] = [
+export const users: Omit<User, 'createdAt'>[] = [
   {
     id: '1',
     name: 'Admin User',
     email: 'admin@etsyatlas.com',
     role: 'admin',
-    createdAt: serverTimestamp(),
   },
   {
     id: '2',
     name: 'Store Manager',
     email: 'manager@etsyatlas.com',
     role: 'user',
-    createdAt: serverTimestamp(),
   },
 ];
 
-export const orders: Order[] = [
+export const orders: Omit<Order, 'createdAt'>[] = [
   {
     id: '1',
     etsyOrderId: 'ORD78901',
@@ -30,7 +27,6 @@ export const orders: Order[] = [
     additionalFees: 5.0,
     notes: 'Customer requested gift wrapping.',
     trackingNumber: '1Z999AA10123456789',
-    createdAt: serverTimestamp(),
   },
   {
     id: '2',
@@ -43,7 +39,6 @@ export const orders: Order[] = [
     additionalFees: 7.5,
     notes: 'Fragile item, handle with care.',
     trackingNumber: '1Z999AA10198765432',
-    createdAt: serverTimestamp(),
   },
   {
     id: '3',
@@ -55,14 +50,12 @@ export const orders: Order[] = [
     shippingCost: 10.0,
     additionalFees: 2.25,
     notes: '',
-    createdAt: serverTimestamp(),
   },
 ];
 
-export const capitalEntries: CapitalEntry[] = [
+export const capitalEntries: Omit<CapitalEntry, 'createdAt'>[] = [
   {
     id: '1',
-    createdAt: serverTimestamp(),
     transactionDate: '2023-10-01',
     type: 'Deposit',
     amount: 5000,
@@ -72,7 +65,6 @@ export const capitalEntries: CapitalEntry[] = [
   },
   {
     id: '2',
-    createdAt: serverTimestamp(),
     transactionDate: '2023-10-15',
     type: 'Deposit',
     amount: 1250.75,
@@ -82,7 +74,6 @@ export const capitalEntries: CapitalEntry[] = [
   },
   {
     id: '3',
-    createdAt: serverTimestamp(),
     transactionDate: '2023-11-01',
     type: 'Deposit',
     amount: 10000,
@@ -92,7 +83,6 @@ export const capitalEntries: CapitalEntry[] = [
   },
    {
     id: '4',
-    createdAt: serverTimestamp(),
     transactionDate: '2023-11-20',
     type: 'Withdrawal',
     amount: 800,
