@@ -1,8 +1,19 @@
-import { getOrders } from '@/lib/actions';
+'use client';
+import { useCollection, useMemoFirebase } from '@/firebase';
 import { OrdersDataTable } from '@/components/dashboard/orders/data-table';
+import type { Order } from '@/lib/definitions';
+import { useFirestore } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
 
-export default async function OrdersPage() {
-  const orders = await getOrders();
+export default function OrdersPage() {
+  const firestore = useFirestore();
+
+  const ordersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'orders'));
+  }, [firestore]);
+  
+  const { data: orders, isLoading } = useCollection<Order>(ordersQuery);
 
   return (
     <div className="space-y-6">
@@ -12,7 +23,7 @@ export default async function OrdersPage() {
           View, create, and manage all your customer orders.
         </p>
       </div>
-      <OrdersDataTable data={orders} />
+      <OrdersDataTable data={orders || []} isLoading={isLoading} />
     </div>
   );
 }

@@ -1,144 +1,75 @@
 {
   "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents an application user.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the user." },
+        "name": { "type": "string", "description": "User's display name." },
+        "email": { "type": "string", "format": "email", "description": "User's email address." },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "User's role." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of user creation." }
+      },
+      "required": ["id", "name", "email", "role", "createdAt"]
+    },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
-      "description": "Represents an order placed through Etsy.",
+      "description": "Represents an order.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Order entity."
-        },
-        "etsyOrderId": {
-          "type": "string",
-          "description": "The order ID as it exists on Etsy."
-        },
-        "orderPrice": {
-          "type": "number",
-          "description": "The total price of the order."
-        },
-        "orderCost": {
-          "type": "number",
-          "description": "The cost of goods for the order."
-        },
-        "shippingCost": {
-          "type": "number",
-          "description": "The shipping cost associated with the order."
-        },
-        "additionalFees": {
-          "type": "number",
-          "description": "Any additional fees associated with the order."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the order (e.g., 'pending', 'shipped', 'delivered')."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to Product. (Relationship: Product 1:N Order)"
-        }
+        "id": { "type": "string", "description": "Unique identifier for the order." },
+        "etsyOrderId": { "type": "string", "description": "Etsy's unique order ID." },
+        "orderDate": { "type": "string", "format": "date", "description": "Date the order was placed." },
+        "status": { "type": "string", "enum": ["Pending", "Shipped", "Delivered", "Cancelled"], "description": "Current status of the order." },
+        "orderPrice": { "type": "number", "description": "Total price of the order." },
+        "orderCost": { "type": "number", "description": "Cost of goods for the order." },
+        "shippingCost": { "type": "number", "description": "Cost of shipping." },
+        "additionalFees": { "type": "number", "description": "Any other fees." },
+        "notes": { "type": "string", "description": "Internal notes for the order." },
+        "trackingNumber": { "type": "string", "description": "Shipping tracking number." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of order creation." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp of last update." }
       },
-      "required": [
-        "id",
-        "etsyOrderId",
-        "orderPrice",
-        "orderCost",
-        "shippingCost",
-        "additionalFees",
-        "status",
-        "productId"
-      ]
+      "required": ["id", "etsyOrderId", "orderDate", "status", "orderPrice", "orderCost", "shippingCost", "additionalFees"]
     },
-    "Product": {
+    "CapitalEntry": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Product",
+      "title": "CapitalEntry",
       "type": "object",
-      "description": "Represents a product listed in the Etsy store.",
+      "description": "Represents a capital movement (deposit or withdrawal).",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Product entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the product."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the product."
-        },
-        "price": {
-          "type": "number",
-          "description": "The price of the product."
-        },
-        "sku": {
-          "type": "string",
-          "description": "The stock keeping unit (SKU) for the product."
-        }
+        "id": { "type": "string", "description": "Unique identifier for the entry." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of entry creation." },
+        "transactionDate": { "type": "string", "format": "date", "description": "Date of the transaction." },
+        "type": { "type": "string", "enum": ["Deposit", "Withdrawal"], "description": "Type of capital movement." },
+        "amount": { "type": "number", "description": "Amount of money moved." },
+        "source": { "type": "string", "enum": ["Etsy Payout", "Loan", "Dividend", "Investment"], "description": "Source of the capital." },
+        "submittedBy": { "type": "string", "description": "Email of the user who submitted the entry." },
+        "notes": { "type": "string", "description": "Optional notes for the entry." }
       },
-      "required": [
-        "id",
-        "name",
-        "description",
-        "price",
-        "sku"
-      ]
+      "required": ["id", "createdAt", "transactionDate", "type", "amount", "source", "submittedBy"]
     }
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "password"
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}/products/{productId}",
-        "definition": {
-          "entityName": "Product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
-          "description": "Stores product data for each user. Path-based ownership ensures only the owner can manage the product.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "productId",
-              "description": "The unique identifier of the product."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/products/{productId}/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores order data for each product, owned by a specific user. Includes denormalized product information (name, price) for authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "productId",
-              "description": "The unique identifier of the product."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier of the order."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "This Firestore structure is designed to support the Etsy Atlas Manager application, focusing on secure and scalable data management for products and orders. The design prioritizes authorization independence and clear security rules by leveraging path-based ownership for product data and denormalization for order access control. The structure incorporates Structural Segregation, Access Modeling, and Data Clarity principles to ensure a robust and maintainable system.\n\nProducts are stored under `/users/{userId}/products/{productId}`, establishing clear ownership and simplifying security rules. Orders are stored under `/users/{userId}/products/{productId}/orders/{orderId}`, further solidifying the relationship and enabling efficient querying. The denormalization strategy involves copying relevant product information into each order document to eliminate the need for `get()` calls in security rules. This approach ensures that authorization checks for orders can be performed independently, without relying on parent document data.\n\nQAPs are supported via structural segregation. Product and order data are stored under specific user paths. This structure supports secure `list` operations by ensuring that users can only access product and order data related to them. Additionally, the membership map pattern can be implemented for collaborative features, if needed in the future."
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profile information."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Stores all order information for the business."
+    },
+    "/capital/{capitalId}": {
+      "schema": { "$ref": "#/entities/CapitalEntry" },
+      "description": "Stores all capital entry information for the business."
+    }
   }
 }

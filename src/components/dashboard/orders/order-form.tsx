@@ -20,12 +20,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import type { Order } from '@/lib/definitions';
 import { addOrder, updateOrder } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { useFirestore } from '@/firebase';
 
 const formSchema = z.object({
   etsyOrderId: z.string().min(1, 'Etsy Order ID is required'),
@@ -45,8 +45,8 @@ type OrderFormProps = {
 };
 
 export function OrderForm({ order, setOpen }: OrderFormProps) {
+  const firestore = useFirestore();
   const { toast } = useToast();
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -68,17 +68,20 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!firestore) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Firestore is not available.' });
+      return;
+    }
+
     startTransition(async () => {
       try {
         if (order) {
-          await updateOrder({ ...order, ...values });
+          await updateOrder(firestore, { ...order, ...values });
           toast({ title: 'Success', description: 'Order updated successfully.' });
         } else {
-          // @ts-ignore
-          await addOrder(values);
+          await addOrder(firestore, values as Omit<Order, 'id'>);
           toast({ title: 'Success', description: 'Order added successfully.' });
         }
-        router.refresh();
         setOpen(false);
       } catch (error) {
         toast({

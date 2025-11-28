@@ -1,8 +1,19 @@
-import { Overview } from '@/components/dashboard/overview';
-import { getOrders } from '@/lib/actions';
+'use client';
 
-export default async function DashboardPage() {
-  const allOrders = await getOrders();
+import { Overview } from '@/components/dashboard/overview';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import type { Order } from '@/lib/definitions';
+import { collection, query } from 'firebase/firestore';
+
+export default function DashboardPage() {
+  const firestore = useFirestore();
+
+  const ordersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'orders'));
+  }, [firestore]);
+
+  const { data: allOrders, isLoading } = useCollection<Order>(ordersQuery);
 
   return (
     <div className="flex flex-col gap-8">
@@ -10,7 +21,7 @@ export default async function DashboardPage() {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Welcome back!</h1>
         <p className="text-muted-foreground">Here&apos;s a summary of your Etsy store&apos;s performance.</p>
       </div>
-      <Overview orders={allOrders} />
+      <Overview orders={allOrders || []} isLoading={isLoading} />
     </div>
   );
 }

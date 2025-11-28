@@ -1,5 +1,5 @@
-
 import type { User, Order, CapitalEntry } from './definitions';
+import { serverTimestamp } from 'firebase/firestore';
 
 export const users: User[] = [
   {
@@ -7,14 +7,14 @@ export const users: User[] = [
     name: 'Admin User',
     email: 'admin@etsyatlas.com',
     role: 'admin',
-    createdAt: '2023-10-01',
+    createdAt: serverTimestamp(),
   },
   {
     id: '2',
     name: 'Store Manager',
     email: 'manager@etsyatlas.com',
     role: 'user',
-    createdAt: '2023-10-05',
+    createdAt: serverTimestamp(),
   },
 ];
 
@@ -30,6 +30,7 @@ export const orders: Order[] = [
     additionalFees: 5.0,
     notes: 'Customer requested gift wrapping.',
     trackingNumber: '1Z999AA10123456789',
+    createdAt: serverTimestamp(),
   },
   {
     id: '2',
@@ -42,6 +43,7 @@ export const orders: Order[] = [
     additionalFees: 7.5,
     notes: 'Fragile item, handle with care.',
     trackingNumber: '1Z999AA10198765432',
+    createdAt: serverTimestamp(),
   },
   {
     id: '3',
@@ -53,98 +55,49 @@ export const orders: Order[] = [
     shippingCost: 10.0,
     additionalFees: 2.25,
     notes: '',
-  },
-  {
-    id: '4',
-    etsyOrderId: 'ORD78904',
-    orderDate: '2023-10-26',
-    status: 'Delivered',
-    orderPrice: 350.0,
-    orderCost: 150.0,
-    shippingCost: 30.0,
-    additionalFees: 15.0,
-    notes: '',
-    trackingNumber: '1Z999AA10111223344',
-  },
-  {
-    id: '5',
-    etsyOrderId: 'ORD78905',
-    orderDate: '2023-11-01',
-    status: 'Cancelled',
-    orderPrice: 55.0,
-    orderCost: 25.0,
-    shippingCost: 5.0,
-    additionalFees: 1.0,
-    notes: 'Customer cancelled due to wrong address.',
-  },
-  {
-    id: '6',
-    etsyOrderId: 'ORD78906',
-    orderDate: '2023-11-05',
-    status: 'Shipped',
-    orderPrice: 120.0,
-    orderCost: 60.0,
-    shippingCost: 12.0,
-    additionalFees: 4.0,
-    notes: '',
-    trackingNumber: '1Z999AA10155667788',
-  },
-  {
-    id: '7',
-    etsyOrderId: 'ORD78907',
-    orderDate: '2023-11-10',
-    status: 'Pending',
-    orderPrice: 89.99,
-    orderCost: 45.0,
-    shippingCost: 8.0,
-    additionalFees: 3.5,
-    notes: 'Awaiting payment confirmation.',
+    createdAt: serverTimestamp(),
   },
 ];
 
 export const capitalEntries: CapitalEntry[] = [
   {
     id: '1',
-    createdAt: '2023-10-01T10:00:00Z',
+    createdAt: serverTimestamp(),
     transactionDate: '2023-10-01',
     type: 'Deposit',
     amount: 5000,
     source: 'Loan',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'Initial capital injection.',
-    locked: true,
   },
   {
     id: '2',
-    createdAt: '2023-10-15T12:00:00Z',
+    createdAt: serverTimestamp(),
     transactionDate: '2023-10-15',
     type: 'Deposit',
     amount: 1250.75,
     source: 'Etsy Payout',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'First Etsy payout for October.',
-    locked: true,
   },
   {
     id: '3',
-    createdAt: '2023-11-01T11:30:00Z',
+    createdAt: serverTimestamp(),
     transactionDate: '2023-11-01',
     type: 'Deposit',
     amount: 10000,
     source: 'Loan',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'Small business loan for scaling.',
-    locked: true,
   },
    {
     id: '4',
-    createdAt: '2023-11-20T11:30:00Z',
+    createdAt: serverTimestamp(),
     transactionDate: '2023-11-20',
     type: 'Withdrawal',
     amount: 800,
     source: 'Dividend',
     submittedBy: 'admin@etsyatlas.com',
     notes: 'Personal withdrawal.',
-    locked: true,
   },
 ];

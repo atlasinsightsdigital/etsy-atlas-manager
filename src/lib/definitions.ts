@@ -1,10 +1,11 @@
+import { FieldValue } from "firebase/firestore";
 
 export type User = {
   id: string; 
   name: string; 
   email: string;
   role: 'admin' | 'user';
-  createdAt: string; 
+  createdAt: string | FieldValue; 
 };
 
 export type Order = {
@@ -18,16 +19,17 @@ export type Order = {
   additionalFees: number;
   notes?: string;
   trackingNumber?: string;
+  createdAt?: string | FieldValue;
+  updatedAt?: string | FieldValue;
 };
 
 export type CapitalEntry = {
   id: string;
-  createdAt: string; 
+  createdAt: string | FieldValue; 
   transactionDate: string;
   type: 'Deposit' | 'Withdrawal';
   amount: number;
   source: 'Etsy Payout' | 'Loan' | 'Dividend' | 'Investment';
   submittedBy: string; 
   notes?: string;
-  locked: boolean;
 };

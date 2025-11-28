@@ -21,9 +21,10 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 type OverviewProps = {
   orders: Order[];
+  isLoading: boolean;
 };
 
-export function Overview({ orders }: OverviewProps) {
+export function Overview({ orders, isLoading }: OverviewProps) {
   const validOrders = orders.filter(order => order.status !== 'Cancelled');
   const totalRevenue = validOrders.reduce((sum, order) => sum + order.orderPrice, 0);
   const totalExpenses = validOrders.reduce((sum, order) => sum + order.orderCost + order.shippingCost + order.additionalFees, 0);
@@ -56,6 +57,11 @@ export function Overview({ orders }: OverviewProps) {
     endDate: 'today',
   };
 
+  const formatCurrency = (value: number) => value.toLocaleString('fr-MA', {
+    style: 'currency',
+    currency: 'MAD',
+  });
+
   return (
     <div className="grid grid-cols-1 gap-6">
       <div className="lg:col-span-4">
@@ -65,31 +71,25 @@ export function Overview({ orders }: OverviewProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Revenue"
-          value={totalRevenue.toLocaleString('fr-MA', {
-            style: 'currency',
-            currency: 'MAD',
-          })}
+          value={isLoading ? '...' : formatCurrency(totalRevenue)}
           icon={<DollarSign />}
           description="Total revenue from all sales."
         />
         <StatCard
           title="Total Profit"
-          value={totalProfit.toLocaleString('fr-MA', {
-            style: 'currency',
-            currency: 'MAD',
-          })}
+          value={isLoading ? '...' : formatCurrency(totalProfit)}
           icon={<CreditCard />}
           description="Total profit after all expenses."
         />
         <StatCard
           title="Profit Margin"
-          value={`${profitMargin.toFixed(1)}%`}
+          value={isLoading ? '...' : `${profitMargin.toFixed(1)}%`}
           icon={<TrendingUp />}
           description="Net profit as a percentage of revenue."
         />
         <StatCard
           title="Total Orders"
-          value={`+${totalOrders}`}
+          value={isLoading ? '...' : `+${totalOrders}`}
           icon={<Package />}
           description="Total number of orders."
         />

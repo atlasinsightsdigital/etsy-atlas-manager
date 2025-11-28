@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -38,9 +37,10 @@ const columns: {
 // --- Data Table Component ---
 interface DataTableProps {
   data: User[];
+  isLoading: boolean;
 }
 
-export function UsersDataTable({ data }: DataTableProps) {
+export function UsersDataTable({ data, isLoading }: DataTableProps) {
   const [filter, setFilter] = React.useState('');
 
   const filteredData = data.filter((item) =>
@@ -57,7 +57,7 @@ export function UsersDataTable({ data }: DataTableProps) {
             {columns.find(c => c.id === 'role')?.cell?.(row)}
         </div>
         <p className="text-sm text-muted-foreground">{row.email}</p>
-        <p className="text-xs text-muted-foreground pt-2">Created: {row.createdAt}</p>
+        <p className="text-xs text-muted-foreground pt-2">Created: {String(row.createdAt)}</p>
       </CardContent>
     </Card>
   );
@@ -75,7 +75,7 @@ export function UsersDataTable({ data }: DataTableProps) {
 
        {/* Mobile View */}
        <div className="sm:hidden">
-        {filteredData.length > 0 ? (
+        {isLoading ? <p className="text-center py-8 text-muted-foreground">Loading users...</p> : filteredData.length > 0 ? (
             filteredData.map(renderMobileCard)
         ) : (
             <p className="text-center text-muted-foreground py-8">No results.</p>
@@ -93,7 +93,13 @@ export function UsersDataTable({ data }: DataTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.length ? (
+            {isLoading ? (
+               <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : filteredData.length ? (
               filteredData.map((row) => (
                 <TableRow key={row.id}>
                   {columns.map((column) => (

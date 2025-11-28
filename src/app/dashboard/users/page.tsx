@@ -1,8 +1,19 @@
-import { getUsers } from '@/lib/actions';
+'use client';
+import { useCollection, useMemoFirebase } from '@/firebase';
 import { UsersDataTable } from '@/components/dashboard/users/data-table';
+import type { User } from '@/lib/definitions';
+import { useFirestore } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
 
-export default async function UsersPage() {
-  const users = await getUsers();
+export default function UsersPage() {
+  const firestore = useFirestore();
+
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'users'));
+  }, [firestore]);
+
+  const { data: users, isLoading } = useCollection<User>(usersQuery);
 
   return (
     <div className="space-y-6">
@@ -12,7 +23,7 @@ export default async function UsersPage() {
           View and manage all users.
         </p>
       </div>
-      <UsersDataTable data={users} />
+      <UsersDataTable data={users || []} isLoading={isLoading}/>
     </div>
   );
 }

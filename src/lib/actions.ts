@@ -1,68 +1,48 @@
-
 'use server';
 
-import { users as mockUsers, orders as mockOrders, capitalEntries as mockCapitalEntries } from '@/lib/data';
-import type { Order, User, CapitalEntry } from './definitions';
-
-// Data is stored in memory and reset on server restart.
-// In a real application, this would be a database.
-let orders: Order[] = [...mockOrders];
-let users: User[] = [...mockUsers];
-let capitalEntries: CapitalEntry[] = [...mockCapitalEntries];
-
-
-// USER ACTIONS
-export async function getUsers() {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-  return users;
-}
+import type { Order, CapitalEntry } from './definitions';
+import {
+  addDocumentNonBlocking,
+  deleteDocumentNonBlocking,
+  updateDocumentNonBlocking,
+} from '@/firebase/non-blocking-updates';
+import { collection, doc, serverTimestamp, type Firestore } from 'firebase/firestore';
+import { v4 as uuidv4 } from 'uuid';
 
 // ORDER ACTIONS
-export async function getOrders() {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-  return orders;
+export async function addOrder(firestore: Firestore, order: Omit<Order, 'id'>) {
+    const ordersCollection = collection(firestore, 'orders');
+    const newOrder = {
+        ...order,
+        id: uuidv4(),
+        createdAt: serverTimestamp(),
+    };
+    return addDocumentNonBlocking(ordersCollection, newOrder);
 }
 
-export async function addOrder(order: Omit<Order, 'id'>) {
-    const newId = (Math.max(...orders.map(o => parseInt(o.id)), 0) + 1).toString();
-    const newOrder: Order = { ...order, id: newId };
-    orders.unshift(newOrder); // Add to the beginning of the array
-    return newOrder;
+export async function updateOrder(firestore: Firestore, order: Order) {
+    const orderRef = doc(firestore, 'orders', order.id);
+    const updateData = { ...order, updatedAt: serverTimestamp() };
+    return updateDocumentNonBlocking(orderRef, updateData);
 }
 
-export async function updateOrder(order: Order) {
-    const index = orders.findIndex(o => o.id === order.id);
-    if (index !== -1) {
-        orders[index] = order;
-        return order;
-    }
-    return null;
-}
-
-export async function deleteOrder(id: string) {
-    orders = orders.filter(o => o.id !== id);
-    return { success: true };
+export async function deleteOrder(firestore: Firestore, id: string) {
+    const orderRef = doc(firestore, 'orders', id);
+    return deleteDocumentNonBlocking(orderRef);
 }
 
 // CAPITAL ACTIONS
-export async function getCapitalEntries() {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-  return capitalEntries;
-}
-
-export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdAt' | 'locked'>) {
-    const newId = (Math.max(...capitalEntries.map(e => parseInt(e.id)), 0) + 1).toString();
-    const newEntry: CapitalEntry = { 
-      ...entry, 
-      id: newId,
-      createdAt: new Date().toISOString(),
-      locked: true
+export async function addCapitalEntry(firestore: Firestore, entry: Omit<CapitalEntry, 'id' | 'createdAt'>) {
+    const capitalCollection = collection(firestore, 'capital');
+    const newEntry = {
+        ...entry,
+        id: uuidv4(),
+        createdAt: serverTimestamp(),
     };
-    capitalEntries.unshift(newEntry);
-    return newEntry;
+    return addDocumentNonBlocking(capitalCollection, newEntry);
 }
 
-export async function deleteCapitalEntry(id: string) {
-    capitalEntries = capitalEntries.filter(e => e.id !== id && !e.locked);
-    return { success: true };
+export async function deleteCapitalEntry(firestore: Firestore, id: string) {
+    const capitalRef = doc(firestore, 'capital', id);
+    return deleteDocumentNonBlocking(capitalRef);
 }

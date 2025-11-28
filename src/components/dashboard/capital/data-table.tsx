@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { MoreHorizontal, Trash2, ArrowDown, ArrowUp } from 'lucide-react';
@@ -16,7 +15,6 @@ import type { CapitalEntry } from '@/lib/definitions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { deleteCapitalEntry } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import {
   Table,
@@ -38,20 +36,24 @@ import {
 } from '@/components/ui/dialog';
 import { CapitalEntryForm } from './capital-form';
 import { Card, CardContent } from '@/components/ui/card';
+import { useFirestore } from '@/firebase';
 
 // --- Columns Definition ---
 function ActionsCell({ entry }: { entry: CapitalEntry }) {
+  const firestore = useFirestore();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
   const { toast } = useToast();
-  const router = useRouter();
 
   const handleDelete = () => {
+    if (!firestore) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Firestore not available.' });
+      return;
+    }
     startTransition(async () => {
-      await deleteCapitalEntry(entry.id);
+      await deleteCapitalEntry(firestore, entry.id);
       toast({ title: 'Success', description: 'Capital entry deleted successfully.' });
       setIsDeleteDialogOpen(false);
-      router.refresh();
     });
   };
   
@@ -68,7 +70,7 @@ function ActionsCell({ entry }: { entry: CapitalEntry }) {
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem className="text-destructive focus:text-destructive" disabled={entry.locked}>
+            <DropdownMenuItem className="text-destructive focus:text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>
@@ -102,7 +104,7 @@ const columns: {
     id: keyof CapitalEntry | 'actions';
     cell?: (row: CapitalEntry) => React.ReactNode;
 }[] = [
-  { id: 'createdAt', header: 'Entry Date', cell: ({ createdAt }: CapitalEntry) => format(new Date(createdAt), 'dd MMM yyyy')},
+  { id: 'createdAt', header: 'Entry Date', cell: ({ createdAt }: CapitalEntry) => format(new Date(createdAt as string), 'dd MMM yyyy')},
   { id: 'transactionDate', header: 'Transaction Date', cell: ({ transactionDate }: CapitalEntry) => format(new Date(transactionDate), 'dd MMM yyyy') },
   { id: 'type', header: 'Type', cell: ({ type }: CapitalEntry) => {
         const config = typeConfigMap[type];
@@ -122,9 +124,10 @@ const columns: {
 // --- Data Table Component ---
 interface DataTableProps {
   data: CapitalEntry[];
+  isLoading: boolean;
 }
 
-export function CapitalDataTable({ data }: DataTableProps) {
+export function CapitalDataTable({ data, isLoading }: DataTableProps) {
   const [filter, setFilter] = React.useState('');
   const [open, setOpen] = React.useState(false);
 
@@ -183,7 +186,9 @@ export function CapitalDataTable({ data }: DataTableProps) {
       
       {/* Mobile View */}
       <div className="sm:hidden">
-        {filteredData.length > 0 ? (
+        {isLoading ? (
+          <p className="text-center text-muted-foreground py-8">Loading entries...</p>
+        ) : filteredData.length > 0 ? (
             filteredData.map(renderMobileCard)
         ) : (
             <p className="text-center text-muted-foreground py-8">No results.</p>
@@ -201,7 +206,13 @@ export function CapitalDataTable({ data }: DataTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.length ? (
+            {isLoading ? (
+               <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : filteredData.length ? (
               filteredData.map((row) => (
                 <TableRow key={row.id}>
                   {columns.map((column) => (

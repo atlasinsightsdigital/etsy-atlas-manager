@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { MoreHorizontal, Trash2, Edit, CheckCircle, XCircle, Truck, Clock } from 'lucide-react';
@@ -25,7 +24,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { OrderForm } from './order-form';
 import { deleteOrder } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -37,22 +35,23 @@ import {
 import { Input } from '@/components/ui/input';
 import { PlusCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { useFirestore } from '@/firebase';
 
 // --- Columns Definition ---
 
 function ActionsCell({ order }: { order: Order }) {
+  const firestore = useFirestore();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
   const { toast } = useToast();
-  const router = useRouter();
 
   const handleDelete = () => {
+    if (!firestore) return;
     startTransition(async () => {
-      await deleteOrder(order.id);
+      await deleteOrder(firestore, order.id);
       toast({ title: 'Success', description: 'Order deleted successfully.' });
       setIsDeleteDialogOpen(false);
-      router.refresh();
     });
   };
   
@@ -144,9 +143,10 @@ const columns: {
 
 interface DataTableProps {
   data: Order[];
+  isLoading: boolean;
 }
 
-export function OrdersDataTable({ data }: DataTableProps) {
+export function OrdersDataTable({ data, isLoading }: DataTableProps) {
   const [filter, setFilter] = React.useState('');
   const [open, setOpen] = React.useState(false);
 
@@ -213,7 +213,7 @@ export function OrdersDataTable({ data }: DataTableProps) {
 
        {/* Mobile View */}
        <div className="sm:hidden">
-        {filteredData.length > 0 ? (
+        {isLoading ? <p className="text-center py-8 text-muted-foreground">Loading orders...</p> : filteredData.length > 0 ? (
             filteredData.map(renderMobileCard)
         ) : (
             <p className="text-center text-muted-foreground py-8">No results.</p>
@@ -231,7 +231,11 @@ export function OrdersDataTable({ data }: DataTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">Loading...</TableCell>
+              </TableRow>
+            ) : filteredData.length ? (
               filteredData.map((row) => (
                 <TableRow key={row.id}>
                   {columns.map((column) => (

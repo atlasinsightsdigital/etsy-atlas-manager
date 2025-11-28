@@ -1,4 +1,3 @@
-
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -21,11 +20,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
 import { useTransition, useEffect } from 'react';
 import { addCapitalEntry } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { useFirestore } from '@/firebase';
 
 const formSchema = z.object({
   type: z.enum(['Deposit', 'Withdrawal']),
@@ -41,8 +40,8 @@ type CapitalFormProps = {
 };
 
 export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
+  const firestore = useFirestore();
   const { toast } = useToast();
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const currentUserEmail = 'admin@etsyatlas.com';
@@ -71,10 +70,17 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
+      if (!firestore) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Firestore is not available.',
+        });
+        return;
+      }
       try {
-        await addCapitalEntry(values);
+        await addCapitalEntry(firestore, values);
         toast({ title: 'Success', description: 'Capital entry added successfully.' });
-        router.refresh();
         setOpen(false);
       } catch (error) {
         toast({

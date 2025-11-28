@@ -1,17 +1,30 @@
+'use client';
 
-import { getCapitalEntries } from '@/lib/actions';
+import { useCollection, useMemoFirebase } from '@/firebase';
 import { CapitalDataTable } from '@/components/dashboard/capital/data-table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Landmark, TrendingDown, TrendingUp } from 'lucide-react';
+import type { CapitalEntry } from '@/lib/definitions';
+import { collection, query } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
-export default async function CapitalPage() {
-  const entries = await getCapitalEntries();
+export default function CapitalPage() {
+  const firestore = useFirestore();
   
-  const totalDeposits = entries
+  const capitalQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'capital'));
+  }, [firestore]);
+
+  const { data: entries, isLoading } = useCollection<CapitalEntry>(capitalQuery);
+
+  const safeEntries = entries || [];
+
+  const totalDeposits = safeEntries
     .filter(e => e.type === 'Deposit')
     .reduce((sum, entry) => sum + entry.amount, 0);
 
-  const totalWithdrawals = entries
+  const totalWithdrawals = safeEntries
     .filter(e => e.type === 'Withdrawal')
     .reduce((sum, entry) => sum + entry.amount, 0);
 
@@ -34,7 +47,7 @@ export default async function CapitalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold tracking-tight">
-              {totalCapital.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
+              {isLoading ? '...' : totalCapital.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
             </p>
             <p className="text-xs text-muted-foreground">
               Total deposits minus total withdrawals.
@@ -49,7 +62,7 @@ export default async function CapitalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-xl font-bold tracking-tight text-primary">
-              {totalDeposits.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
+            {isLoading ? '...' : totalDeposits.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
             </p>
             <p className="text-xs text-primary/70">
               Total funds added to capital.
@@ -64,7 +77,7 @@ export default async function CapitalPage() {
           </CardHeader>
           <CardContent>
             <p className="text-xl font-bold tracking-tight text-destructive">
-              {totalWithdrawals.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
+            {isLoading ? '...' : totalWithdrawals.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
             </p>
             <p className="text-xs text-destructive/70">
               Total funds withdrawn from capital.
@@ -73,7 +86,7 @@ export default async function CapitalPage() {
         </Card>
       </div>
 
-      <CapitalDataTable data={entries} />
+      <CapitalDataTable data={safeEntries} isLoading={isLoading} />
     </div>
   );
 }
