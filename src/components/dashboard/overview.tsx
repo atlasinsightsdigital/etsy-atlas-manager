@@ -1,3 +1,5 @@
+'use client';
+
 import type { Order } from '@/lib/definitions';
 import { StatCard } from './stat-card';
 import { DollarSign, Package, TrendingUp, CreditCard } from 'lucide-react';
