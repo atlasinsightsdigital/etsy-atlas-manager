@@ -25,7 +25,6 @@ import type { Order } from '@/lib/definitions';
 import { addOrder, updateOrder } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { useFirestore } from '@/firebase';
 import { Timestamp } from 'firebase/firestore';
 
 const formSchema = z.object({
@@ -59,7 +58,6 @@ function formatDateForInput(date: any): string {
 }
 
 export function OrderForm({ order, setOpen }: OrderFormProps) {
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
@@ -82,18 +80,13 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!firestore) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Firestore is not available.' });
-      return;
-    }
-
     startTransition(async () => {
       try {
         if (order) {
-          await updateOrder(firestore, order.id, values);
+          await updateOrder(order.id, values);
           toast({ title: 'Success', description: 'Order updated successfully.' });
         } else {
-          await addOrder(firestore, values as Omit<Order, 'id'>);
+          await addOrder(values as Omit<Order, 'id'>);
           toast({ title: 'Success', description: 'Order added successfully.' });
         }
         setOpen(false);
@@ -101,7 +94,7 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: 'Something went wrong.',
+          description: (error as Error).message || 'Something went wrong.',
         });
       }
     });

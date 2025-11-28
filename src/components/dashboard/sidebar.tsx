@@ -19,13 +19,11 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useFirestore } from '@/firebase';
 import { seedDatabase } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
 export function DashboardSidebar() {
   const pathname = usePathname();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [isSeeding, setIsSeeding] = React.useState(false);
 
@@ -53,17 +51,9 @@ export function DashboardSidebar() {
   ];
 
   const handleSeed = async () => {
-    if (!firestore) {
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Firestore is not available.',
-        });
-        return;
-    }
     setIsSeeding(true);
     try {
-        await seedDatabase(firestore);
+        await seedDatabase();
         toast({
             title: 'Database Seeded',
             description: 'Your database has been populated with sample data.',
@@ -73,7 +63,7 @@ export function DashboardSidebar() {
         toast({
             variant: 'destructive',
             title: 'Error Seeding Database',
-            description: 'Could not populate the database. Check console for errors.',
+            description: (error as Error).message || 'Could not populate the database. Check console for errors.',
         });
     } finally {
         setIsSeeding(false);

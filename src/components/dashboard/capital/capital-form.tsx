@@ -24,7 +24,6 @@ import { useTransition, useEffect } from 'react';
 import { addCapitalEntry } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { useFirestore } from '@/firebase';
 
 const formSchema = z.object({
   type: z.enum(['Deposit', 'Withdrawal']),
@@ -40,7 +39,6 @@ type CapitalFormProps = {
 };
 
 export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
@@ -70,23 +68,15 @@ export function CapitalEntryForm({ setOpen }: CapitalFormProps) {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
-      if (!firestore) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Firestore is not available.',
-        });
-        return;
-      }
       try {
-        await addCapitalEntry(firestore, values);
+        await addCapitalEntry(values);
         toast({ title: 'Success', description: 'Capital entry added successfully.' });
         setOpen(false);
       } catch (error) {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: 'Something went wrong.',
+          description: (error as Error).message || 'Something went wrong.',
         });
       }
     });

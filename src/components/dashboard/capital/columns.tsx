@@ -1,5 +1,3 @@
-
-
 'use client';
 import * as React from 'react';
 import { MoreHorizontal, Trash2, ArrowDown, ArrowUp } from 'lucide-react';
@@ -20,7 +18,6 @@ import { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
 
 function formatDate(date: any): string {
     if (!date) return '';
@@ -31,20 +28,23 @@ function formatDate(date: any): string {
 }
 
 function ActionsCell({ entry }: { entry: CapitalEntry }) {
-  const firestore = useFirestore();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
   const handleDelete = () => {
-    if (!firestore) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Firestore not available.' });
-      return;
-    }
     startTransition(async () => {
-      await deleteCapitalEntry(firestore, entry.id);
-      toast({ title: 'Success', description: 'Capital entry deleted successfully.' });
-      setIsDeleteDialogOpen(false);
+      try {
+        await deleteCapitalEntry(entry.id);
+        toast({ title: 'Success', description: 'Capital entry deleted successfully.' });
+        setIsDeleteDialogOpen(false);
+      } catch (error) {
+        toast({ 
+          variant: 'destructive', 
+          title: 'Error', 
+          description: (error as Error).message || 'Could not delete entry.' 
+        });
+      }
     });
   };
   

@@ -7,13 +7,14 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  type Firestore,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { getFirestore } from '@/firebase/server-init';
 
 // ORDER ACTIONS
-export async function addOrder(firestore: Firestore, order: Omit<Order, 'id'>) {
+export async function addOrder(order: Omit<Order, 'id'>) {
+  const firestore = getFirestore();
   const newOrder = {
     ...order,
     createdAt: new Date(),
@@ -22,18 +23,15 @@ export async function addOrder(firestore: Firestore, order: Omit<Order, 'id'>) {
   try {
     await addDoc(collection(firestore, 'orders'), newOrder);
   } catch (error) {
-    const permissionError = new FirestorePermissionError({
-      path: 'orders',
-      operation: 'create',
-      requestResourceData: newOrder
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    console.error("Original error:", error); // Log original error for server-side inspection
-    throw error; // Re-throw the error to be caught by the form's catch block
+    // Note: errorEmitter will not work in Server Actions as it's a client-side mechanism.
+    // The error is thrown to be caught by the form's state management.
+    console.error("Firestore 'addOrder' Error:", error);
+    throw new Error('Failed to create order. Please check permissions and data.');
   }
 }
 
-export async function updateOrder(firestore: Firestore, id: string, data: Partial<Omit<Order, 'id'>>) {
+export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) {
+  const firestore = getFirestore();
   const orderRef = doc(firestore, 'orders', id);
   const updateData = {
     ...data,
@@ -42,34 +40,25 @@ export async function updateOrder(firestore: Firestore, id: string, data: Partia
   try {
     await updateDoc(orderRef, updateData);
   } catch (error) {
-    const permissionError = new FirestorePermissionError({
-      path: orderRef.path,
-      operation: 'update',
-      requestResourceData: updateData
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    console.error("Original error:", error);
-    throw error;
+    console.error("Firestore 'updateOrder' Error:", error);
+    throw new Error('Failed to update order. Please check permissions and data.');
   }
 }
 
-export async function deleteOrder(firestore: Firestore, id: string) {
+export async function deleteOrder(id: string) {
+  const firestore = getFirestore();
   const orderRef = doc(firestore, 'orders', id);
   try {
     await deleteDoc(orderRef);
   } catch (error) {
-    const permissionError = new FirestorePermissionError({
-      path: orderRef.path,
-      operation: 'delete',
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    console.error("Original error:", error);
-    throw error;
+    console.error("Firestore 'deleteOrder' Error:", error);
+    throw new Error('Failed to delete order. Please check permissions.');
   }
 }
 
 // CAPITAL ACTIONS
-export async function addCapitalEntry(firestore: Firestore, entry: Omit<CapitalEntry, 'id' | 'createdAt'>) {
+export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdAt'>) {
+  const firestore = getFirestore();
   const newEntry = {
     ...entry,
     createdAt: new Date(),
@@ -77,34 +66,25 @@ export async function addCapitalEntry(firestore: Firestore, entry: Omit<CapitalE
   try {
     await addDoc(collection(firestore, 'capital'), newEntry);
   } catch (error) {
-    const permissionError = new FirestorePermissionError({
-      path: 'capital',
-      operation: 'create',
-      requestResourceData: newEntry
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    console.error("Original error:", error);
-    throw error;
+    console.error("Firestore 'addCapitalEntry' Error:", error);
+    throw new Error('Failed to add capital entry. Please check permissions and data.');
   }
 }
 
-export async function deleteCapitalEntry(firestore: Firestore, id: string) {
+export async function deleteCapitalEntry(id: string) {
+  const firestore = getFirestore();
   const capitalRef = doc(firestore, 'capital', id);
   try {
     await deleteDoc(capitalRef);
   } catch (error) {
-    const permissionError = new FirestorePermissionError({
-      path: capitalRef.path,
-      operation: 'delete',
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    console.error("Original error:", error);
-    throw error;
+    console.error("Firestore 'deleteCapitalEntry' Error:", error);
+    throw new Error('Failed to delete capital entry. Please check permissions.');
   }
 }
 
 // SEED ACTION
-export async function seedDatabase(firestore: Firestore) {
+export async function seedDatabase() {
+  const firestore = getFirestore();
   // This function is intentionally left empty.
   console.log('Database seeding is not performed.');
   return Promise.resolve();

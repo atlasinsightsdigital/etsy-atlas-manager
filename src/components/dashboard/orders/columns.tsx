@@ -24,7 +24,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { OrderForm } from './order-form';
 import { deleteOrder } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore } from '@/firebase';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 
@@ -40,18 +39,24 @@ function formatDate(date: any): string {
 // --- Columns Definition ---
 
 function ActionsCell({ order }: { order: Order }) {
-  const firestore = useFirestore();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [isPending, startTransition] = React.useTransition();
   const { toast } = useToast();
 
   const handleDelete = () => {
-    if (!firestore) return;
     startTransition(async () => {
-      await deleteOrder(firestore, order.id);
-      toast({ title: 'Success', description: 'Order deleted successfully.' });
-      setIsDeleteDialogOpen(false);
+      try {
+        await deleteOrder(order.id);
+        toast({ title: 'Success', description: 'Order deleted successfully.' });
+        setIsDeleteDialogOpen(false);
+      } catch (error) {
+        toast({ 
+          variant: 'destructive', 
+          title: 'Error', 
+          description: (error as Error).message || 'Could not delete order.' 
+        });
+      }
     });
   };
   
