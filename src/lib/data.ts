@@ -1,5 +1,5 @@
 
-import type { User, Order, Product } from './definitions';
+import type { User, Order, Product, CapitalEntry } from './definitions';
 
 export const users: User[] = [
   {
@@ -147,5 +147,40 @@ export const products: Product[] = [
     stock: 75,
     imageUrl: 'https://picsum.photos/seed/product5/400/400',
     imageHint: 'scented candle'
+  },
+];
+
+export const capitalEntries: CapitalEntry[] = [
+  {
+    id: '1',
+    createdAt: '2023-10-01T10:00:00Z',
+    type: 'personal',
+    amount: 5000,
+    source: 'Admin User',
+    submittedBy: 'admin@etsyatlas.com',
+    notes: 'Initial capital injection.',
+    locked: true,
+  },
+  {
+    id: '2',
+    createdAt: '2023-10-15T12:00:00Z',
+    type: 'payout',
+    amount: 1250.75,
+    source: 'Etsy',
+    referenceId: 'payout-oct-1',
+    submittedBy: 'admin@etsyatlas.com',
+    notes: 'First Etsy payout for October.',
+    locked: true,
+  },
+  {
+    id: '3',
+    createdAt: '2023-11-01T11:30:00Z',
+    type: 'loan',
+    amount: 10000,
+    source: 'Local Bank',
+    referenceId: 'loan-agreement-112',
+    submittedBy: 'admin@etsyatlas.com',
+    notes: 'Small business loan for scaling.',
+    locked: true,
   },
 ];

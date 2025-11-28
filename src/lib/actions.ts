@@ -4,8 +4,8 @@
 import { z } from 'zod';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { users as mockUsers, orders as mockOrders, products as mockProducts } from '@/lib/data';
-import type { Order, Product, User } from './definitions';
+import { users as mockUsers, orders as mockOrders, products as mockProducts, capitalEntries as mockCapitalEntries } from '@/lib/data';
+import type { Order, Product, User, CapitalEntry } from './definitions';
 
 // AUTH ACTIONS
 const loginSchema = z.object({
@@ -51,6 +51,7 @@ export async function logout() {
 let orders: Order[] = [...mockOrders];
 let products: Product[] = [...mockProducts];
 let users: User[] = [...mockUsers];
+let capitalEntries: CapitalEntry[] = [...mockCapitalEntries];
 
 
 // USER ACTIONS
@@ -108,5 +109,27 @@ export async function updateProduct(product: Product) {
 
 export async function deleteProduct(id: string) {
     products = products.filter(p => p.id !== id);
+    return { success: true };
+}
+
+// CAPITAL ACTIONS
+export async function getCapitalEntries() {
+  return capitalEntries;
+}
+
+export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdAt' | 'locked'>) {
+    const newId = (Math.max(...capitalEntries.map(e => parseInt(e.id)), 0) + 1).toString();
+    const newEntry: CapitalEntry = { 
+      ...entry, 
+      id: newId,
+      createdAt: new Date().toISOString(),
+      locked: true
+    };
+    capitalEntries.push(newEntry);
+    return newEntry;
+}
+
+export async function deleteCapitalEntry(id: string) {
+    capitalEntries = capitalEntries.filter(e => e.id !== id);
     return { success: true };
 }

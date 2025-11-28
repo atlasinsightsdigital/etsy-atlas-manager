@@ -29,3 +29,15 @@ export type Product = {
   imageUrl: string;
   imageHint: string;
 };
+
+export type CapitalEntry = {
+  id: string;
+  createdAt: string; // ISO 8601 string date
+  type: 'payout' | 'loan' | 'personal';
+  amount: number;
+  source: string;
+  referenceId?: string;
+  submittedBy: string; // email or UID
+  notes?: string;
+  locked: boolean;
+};

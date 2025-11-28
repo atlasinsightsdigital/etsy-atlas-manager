@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   ShoppingCart,
   Users,
+  Landmark,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -30,6 +31,11 @@ export function DashboardSidebar() {
       href: '/dashboard/orders',
       label: 'Orders',
       icon: ShoppingCart,
+    },
+    {
+      href: '/dashboard/capital',
+      label: 'Capital',
+      icon: Landmark,
     },
     {
       href: '/dashboard/users',
@@ -77,9 +83,9 @@ export function DashboardSidebar() {
             <SidebarMenuItem key={item.label}>
               <Button
                 asChild
-                variant={pathname === item.href ? 'default' : 'ghost'}
+                variant={pathname.startsWith(item.href) && (item.href !== '/dashboard' || pathname === '/dashboard') ? 'default' : 'ghost'}
                 className="w-full justify-start"
-                aria-current={pathname === item.href ? 'page' : undefined}
+                aria-current={pathname.startsWith(item.href) ? 'page' : undefined}
               >
                 <Link href={item.href}>
                   <item.icon className="mr-2 h-4 w-4" />
