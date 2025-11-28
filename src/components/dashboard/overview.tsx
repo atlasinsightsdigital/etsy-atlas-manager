@@ -64,9 +64,9 @@ export function Overview({ orders }: OverviewProps) {
 
       <StatCard
         title="Total Revenue"
-        value={totalRevenue.toLocaleString('en-US', {
+        value={totalRevenue.toLocaleString('fr-MA', {
           style: 'currency',
-          currency: 'USD',
+          currency: 'MAD',
         })}
         icon={<DollarSign />}
         description="Total revenue from all sales."
@@ -85,9 +85,9 @@ export function Overview({ orders }: OverviewProps) {
       />
        <StatCard
         title="Total Profit"
-        value={totalProfit.toLocaleString('en-US', {
+        value={totalProfit.toLocaleString('fr-MA', {
           style: 'currency',
-          currency: 'USD',
+          currency: 'MAD',
         })}
         icon={<CreditCard />}
         description="Total profit after all expenses."
@@ -111,7 +111,7 @@ export function Overview({ orders }: OverviewProps) {
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${value / 1000}K`}
+                tickFormatter={(value) => `${value / 1000}K`}
               />
               <ChartTooltip
                 cursor={false}

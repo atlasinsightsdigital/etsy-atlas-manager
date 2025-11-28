@@ -137,13 +137,13 @@ export const columns: {
   },
   {
     header: 'Total Price',
-    cell: ({orderPrice}: Order) => orderPrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+    cell: ({orderPrice}: Order) => orderPrice.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' }),
   },
     {
     header: 'Profit',
     cell: ({orderPrice, orderCost, shippingCost, additionalFees}: Order) => {
       const profit = orderPrice - (orderCost + shippingCost + additionalFees);
-      return profit.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+      return profit.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' });
     }
   },
   {
