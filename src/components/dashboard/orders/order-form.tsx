@@ -98,10 +98,23 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
             control={form.control}
             name="etsyOrderId"
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem>
                 <FormLabel>Etsy Order ID</FormLabel>
                 <FormControl>
                   <Input placeholder="123456789" {...field} disabled={!!order} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="trackingNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tracking Number</FormLabel>
+                <FormControl>
+                  <Input placeholder="1Z999AA10123456789" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -142,19 +155,6 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
                       <SelectItem value="Cancelled">Cancelled</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="trackingNumber"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Tracking Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="1Z999AA10123456789" {...field} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
