@@ -19,16 +19,18 @@ export async function addOrder(firestore: Firestore, order: Omit<Order, 'id'>) {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-  addDoc(collection(firestore, 'orders'), newOrder)
-    .catch((error) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'orders',
-            operation: 'create',
-            requestResourceData: newOrder
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        console.error("Original error:", error); // Log original error for server-side inspection
+  try {
+    await addDoc(collection(firestore, 'orders'), newOrder);
+  } catch (error) {
+    const permissionError = new FirestorePermissionError({
+      path: 'orders',
+      operation: 'create',
+      requestResourceData: newOrder
     });
+    errorEmitter.emit('permission-error', permissionError);
+    console.error("Original error:", error); // Log original error for server-side inspection
+    throw error; // Re-throw the error to be caught by the form's catch block
+  }
 }
 
 export async function updateOrder(firestore: Firestore, id: string, data: Partial<Omit<Order, 'id'>>) {
@@ -37,29 +39,33 @@ export async function updateOrder(firestore: Firestore, id: string, data: Partia
     ...data,
     updatedAt: new Date(),
   };
-  updateDoc(orderRef, updateData)
-    .catch((error) => {
-        const permissionError = new FirestorePermissionError({
-            path: orderRef.path,
-            operation: 'update',
-            requestResourceData: updateData
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        console.error("Original error:", error);
+  try {
+    await updateDoc(orderRef, updateData);
+  } catch (error) {
+    const permissionError = new FirestorePermissionError({
+      path: orderRef.path,
+      operation: 'update',
+      requestResourceData: updateData
     });
+    errorEmitter.emit('permission-error', permissionError);
+    console.error("Original error:", error);
+    throw error;
+  }
 }
 
 export async function deleteOrder(firestore: Firestore, id: string) {
   const orderRef = doc(firestore, 'orders', id);
-  deleteDoc(orderRef)
-    .catch((error) => {
-        const permissionError = new FirestorePermissionError({
-            path: orderRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        console.error("Original error:", error);
+  try {
+    await deleteDoc(orderRef);
+  } catch (error) {
+    const permissionError = new FirestorePermissionError({
+      path: orderRef.path,
+      operation: 'delete',
     });
+    errorEmitter.emit('permission-error', permissionError);
+    console.error("Original error:", error);
+    throw error;
+  }
 }
 
 // CAPITAL ACTIONS
@@ -68,29 +74,33 @@ export async function addCapitalEntry(firestore: Firestore, entry: Omit<CapitalE
     ...entry,
     createdAt: new Date(),
   };
-  addDoc(collection(firestore, 'capital'), newEntry)
-    .catch((error) => {
-        const permissionError = new FirestorePermissionError({
-            path: 'capital',
-            operation: 'create',
-            requestResourceData: newEntry
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        console.error("Original error:", error);
+  try {
+    await addDoc(collection(firestore, 'capital'), newEntry);
+  } catch (error) {
+    const permissionError = new FirestorePermissionError({
+      path: 'capital',
+      operation: 'create',
+      requestResourceData: newEntry
     });
+    errorEmitter.emit('permission-error', permissionError);
+    console.error("Original error:", error);
+    throw error;
+  }
 }
 
 export async function deleteCapitalEntry(firestore: Firestore, id: string) {
   const capitalRef = doc(firestore, 'capital', id);
-  deleteDoc(capitalRef)
-    .catch((error) => {
-        const permissionError = new FirestorePermissionError({
-            path: capitalRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        console.error("Original error:", error);
+  try {
+    await deleteDoc(capitalRef);
+  } catch (error) {
+    const permissionError = new FirestorePermissionError({
+      path: capitalRef.path,
+      operation: 'delete',
     });
+    errorEmitter.emit('permission-error', permissionError);
+    console.error("Original error:", error);
+    throw error;
+  }
 }
 
 // SEED ACTION
