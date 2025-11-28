@@ -55,7 +55,7 @@ export function OrdersDataTable({ columns, data }: DataTableProps) {
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Order
+              New Order
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-2xl">
