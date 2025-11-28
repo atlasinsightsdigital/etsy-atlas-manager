@@ -163,7 +163,6 @@ export function OrdersDataTable({ data, isLoading }: DataTableProps) {
     const searchableFields: (keyof Order)[] = ['etsyOrderId', 'status', 'trackingNumber', 'notes'];
     return searchableFields.some(field => {
         const value = item[field];
-        // Ensure value is a string before calling toLowerCase
         return typeof value === 'string' && value.toLowerCase().includes(filter.toLowerCase());
     });
   });
