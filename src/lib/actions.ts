@@ -54,7 +54,7 @@ export async function seedDatabase(firestore: Firestore) {
   // Seed Users
   users.forEach((user) => {
     const docRef = doc(firestore, 'users', user.id);
-    const userData = { 
+    const userData = {
         id: user.id,
         name: user.name,
         email: user.email,
@@ -76,8 +76,8 @@ export async function seedDatabase(firestore: Firestore) {
         orderCost: order.orderCost,
         shippingCost: order.shippingCost,
         additionalFees: order.additionalFees,
-        notes: order.notes || '', // Ensure notes is a string
-        trackingNumber: order.trackingNumber || '', // Ensure trackingNumber is a string
+        notes: '',
+        trackingNumber: '',
         createdAt: serverTimestamp(),
     };
     batch.set(docRef, orderData);
@@ -93,7 +93,7 @@ export async function seedDatabase(firestore: Firestore) {
         amount: entry.amount,
         source: entry.source,
         submittedBy: entry.submittedBy,
-        notes: entry.notes || '', // Ensure notes is a string
+        notes: entry.notes || '',
         createdAt: serverTimestamp(),
     };
     batch.set(docRef, entryData);

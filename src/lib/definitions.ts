@@ -8,7 +8,7 @@ export type User = {
   name: string; 
   email: string;
   role: 'admin' | 'user';
-  createdAt: FirestoreDate;
+  createdAt: any;
 };
 
 export type Order = {
