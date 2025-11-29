@@ -4,44 +4,54 @@ import { initializeApp, getApps, getApp, cert, App } from 'firebase-admin/app';
 import { getFirestore as getFirestoreAdmin, Firestore } from 'firebase-admin/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
-// This is a singleton pattern to ensure we only initialize the app once.
-let adminApp: App;
+// Keep a global reference so Firebase Admin is initialized only once
+let adminApp: App | undefined;
 
-function initializeAdminApp() {
-  if (getApps().some(app => app.name === 'admin')) {
-    return getApp('admin');
-  }
+// Initialize Admin SDK (singleton)
+async function initializeAdminApp(): Promise<App> {
+  // If already initialized → return existing app
+  const existing = getApps().find(app => app.name === 'admin');
+  if (existing) return existing;
 
+  // Check if SERVICE ACCOUNT is set via environment variable
   const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
     ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
     : undefined;
 
+  // Case 1: Using service account JSON (production recommended)
   if (serviceAccount) {
-    return initializeApp({
-      credential: cert(serviceAccount),
-      projectId: firebaseConfig.projectId,
-    }, 'admin');
+    return initializeApp(
+      {
+        credential: cert(serviceAccount),
+        projectId: firebaseConfig.projectId,
+      },
+      'admin'
+    );
   }
 
-  // Fallback for environments where service account isn't set via env var
-  // (like local or some CI/CD) but might have Application Default Credentials.
-  return initializeApp({
-    projectId: firebaseConfig.projectId,
-  }, 'admin');
+  // Case 2: Use default credentials (local dev, CI/CD, etc.)
+  return initializeApp(
+    {
+      projectId: firebaseConfig.projectId,
+    },
+    'admin'
+  );
 }
 
-function getAdminApp(): App {
+// Get or create the Admin app
+async function getAdminApp(): Promise<App> {
   if (!adminApp) {
-    adminApp = initializeAdminApp();
+    adminApp = await initializeAdminApp();
   }
   return adminApp;
 }
 
+// Exported functions must be async for Next.js Server Actions
 export async function getFirebaseAdminApp(): Promise<App> {
-  return getAdminApp();
+  return await getAdminApp();
 }
 
 export async function getFirestore(): Promise<Firestore> {
-  // Always get the firestore instance from the initialized admin app
-  return getFirestoreAdmin(getAdminApp());
+  const app = await getAdminApp();
+  return getFirestoreAdmin(app);
 }
