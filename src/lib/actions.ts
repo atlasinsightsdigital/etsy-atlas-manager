@@ -1,6 +1,6 @@
 'use server';
 
-import type { Order, CapitalEntry, User } from './definitions';
+import type { Order, CapitalEntry } from './definitions';
 import {
   collection,
   doc,
@@ -8,132 +8,93 @@ import {
   updateDoc,
   deleteDoc,
   setDoc,
-  Firestore,
+  serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
 import { getFirestore } from '@/firebase/server-init';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirebaseAdminApp } from '@/firebase/server-init';
 
-// --- Helper function to ensure Firestore is initialized ---
-async function getDb(): Promise<Firestore> {
-  // getFirestore() from server-init already handles initialization logic.
+// ---- INIT FIRESTORE ----
+async function getDb() {
   return getFirestore();
 }
 
-// ORDER ACTIONS
+// ---- ORDERS ----
 export async function addOrder(order: Omit<Order, 'id'>) {
   const db = await getDb();
+
+  const orderDateTimestamp = order.orderDate
+    ? Timestamp.fromDate(new Date(order.orderDate))
+    : serverTimestamp();
+
   const newOrder = {
     ...order,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
+    orderDate: orderDateTimestamp,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   };
+
   try {
     await addDoc(collection(db, 'orders'), newOrder);
   } catch (error) {
     console.error("Firestore 'addOrder' Error:", error);
-    throw new Error('Failed to create order. Please check permissions and data.');
+    throw new Error('Error creating order.');
   }
 }
 
 export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) {
   const db = await getDb();
   const orderRef = doc(db, 'orders', id);
-  const updateData = {
+
+  const updateData: any = {
     ...data,
-    updatedAt: Timestamp.now(),
+    updatedAt: serverTimestamp(),
   };
+
+  // Convert orderDate if present
+  if (data.orderDate) {
+    updateData.orderDate = Timestamp.fromDate(new Date(data.orderDate));
+  }
+
   try {
     await updateDoc(orderRef, updateData);
   } catch (error) {
     console.error("Firestore 'updateOrder' Error:", error);
-    throw new Error('Failed to update order. Please check permissions and data.');
+    throw new Error('Error updating order.');
   }
 }
 
+// ---- DELETE ORDER ----
 export async function deleteOrder(id: string) {
   const db = await getDb();
-  const orderRef = doc(db, 'orders', id);
   try {
-    await deleteDoc(orderRef);
+    await deleteDoc(doc(db, 'orders', id));
   } catch (error) {
-    console.error("Firestore 'deleteOrder' Error:", error);
-    throw new Error('Failed to delete order. Please check permissions.');
+    console.error('Error deleting order:', error);
+    throw new Error('Failed to delete order.');
   }
 }
 
-// CAPITAL ACTIONS
+// ---- CAPITAL ----
 export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdAt'>) {
   const db = await getDb();
-  const newEntry = {
-    ...entry,
-    createdAt: Timestamp.now(),
-  };
+
   try {
-    await addDoc(collection(db, 'capital'), newEntry);
+    await addDoc(collection(db, 'capital'), {
+      ...entry,
+      createdAt: serverTimestamp(),
+    });
   } catch (error) {
-    console.error("Firestore 'addCapitalEntry' Error:", error);
-    throw new Error('Failed to add capital entry. Please check permissions and data.');
+    console.error('Error addCapitalEntry:', error);
+    throw new Error('Unable to add capital entry.');
   }
 }
 
 export async function deleteCapitalEntry(id: string) {
   const db = await getDb();
-  const capitalRef = doc(db, 'capital', id);
   try {
-    await deleteDoc(capitalRef);
+    await deleteDoc(doc(db, 'capital', id));
   } catch (error) {
-    console.error("Firestore 'deleteCapitalEntry' Error:", error);
-    throw new Error('Failed to delete capital entry. Please check permissions.');
-  }
-}
-
-// SEED ACTION
-export async function seedDatabase() {
-  console.log('Seeding process initiated...');
-  try {
-    const app = await getFirebaseAdminApp();
-    const auth = getAuth(app);
-    const db = await getFirestore();
-
-    const userEmail = 'admin@etsyatlas.com';
-    let userRecord;
-
-    // Check if user already exists
-    try {
-      userRecord = await auth.getUserByEmail(userEmail);
-      console.log(`User ${userEmail} already exists.`);
-    } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        // User does not exist, create them
-        userRecord = await auth.createUser({
-          email: userEmail,
-          emailVerified: true,
-          displayName: 'Admin User',
-        });
-        console.log(`Successfully created new user: ${userRecord.uid}`);
-      } else {
-        // Another error occurred
-        throw error;
-      }
-    }
-
-    // Now, create or update their profile in Firestore
-    const userDocRef = doc(db, 'users', userRecord.uid);
-    await setDoc(userDocRef, {
-      name: 'AZ EDDINE',
-      email: userEmail,
-      role: 'admin',
-      createdAt: Timestamp.now(),
-      id: userRecord.uid
-    }, { merge: true });
-
-    console.log(`Admin user profile created/updated in Firestore for ${userEmail}.`);
-    console.log('Seeding process completed successfully.');
-
-  } catch (error) {
-    console.error('Error during database seeding:', error);
-    throw new Error('Failed to seed database. Check server logs for details.');
+    console.error('Error deleteCapitalEntry:', error);
+    throw new Error('Unable to delete capital entry.');
   }
 }
