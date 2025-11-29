@@ -7,25 +7,17 @@ import {
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarFooter,
-  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
   ShoppingCart,
   Users,
   Landmark,
-  Database,
-  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { seedDatabase } from '@/lib/actions';
-import { useToast } from '@/hooks/use-toast';
 
 export function DashboardSidebar() {
   const pathname = usePathname();
-  const { toast } = useToast();
-  const [isSeeding, setIsSeeding] = React.useState(false);
 
   const menuItems = [
     {
@@ -49,27 +41,6 @@ export function DashboardSidebar() {
       icon: Users,
     },
   ];
-
-  const handleSeed = async () => {
-    setIsSeeding(true);
-    try {
-        await seedDatabase();
-        toast({
-            title: 'Database Seeded',
-            description: 'Your database has been populated with sample data.',
-        });
-    } catch (error) {
-        console.error('Error seeding database:', error);
-        toast({
-            variant: 'destructive',
-            title: 'Error Seeding Database',
-            description: (error as Error).message || 'Could not populate the database. Check console for errors.',
-        });
-    } finally {
-        setIsSeeding(false);
-    }
-  };
-
 
   return (
     <>
@@ -123,17 +94,6 @@ export function DashboardSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarSeparator />
-      <SidebarFooter className="p-2">
-        <Button variant="outline" onClick={handleSeed} disabled={isSeeding}>
-          {isSeeding ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Database className="mr-2 h-4 w-4" />
-          )}
-          Seed Database
-        </Button>
-      </SidebarFooter>
     </>
   );
 }
