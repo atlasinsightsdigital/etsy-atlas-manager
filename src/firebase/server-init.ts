@@ -1,3 +1,4 @@
+'use server';
 
 import { initializeApp, getApps, getApp, cert, App } from 'firebase-admin/app';
 import { getFirestore as getFirestoreAdmin, Firestore } from 'firebase-admin/firestore';
@@ -36,11 +37,11 @@ function getAdminApp(): App {
   return adminApp;
 }
 
-export function getFirebaseAdminApp(): App {
+export async function getFirebaseAdminApp(): Promise<App> {
   return getAdminApp();
 }
 
-export function getFirestore(): Firestore {
+export async function getFirestore(): Promise<Firestore> {
   // Always get the firestore instance from the initialized admin app
   return getFirestoreAdmin(getAdminApp());
 }

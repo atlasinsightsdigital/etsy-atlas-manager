@@ -93,12 +93,11 @@ export async function deleteCapitalEntry(id: string) {
 export async function seedDatabase() {
   console.log('Seeding process initiated...');
   try {
-    const app = getFirebaseAdminApp();
+    const app = await getFirebaseAdminApp();
     const auth = getAuth(app);
-    const db = getFirestore();
+    const db = await getFirestore();
 
     const userEmail = 'admin@etsyatlas.com';
-    const userPassword = 'password';
     let userRecord;
 
     // Check if user already exists
@@ -110,7 +109,6 @@ export async function seedDatabase() {
         // User does not exist, create them
         userRecord = await auth.createUser({
           email: userEmail,
-          password: userPassword,
           emailVerified: true,
           displayName: 'Admin User',
         });
@@ -124,7 +122,7 @@ export async function seedDatabase() {
     // Now, create or update their profile in Firestore
     const userDocRef = doc(db, 'users', userRecord.uid);
     await setDoc(userDocRef, {
-      name: 'Admin User',
+      name: 'AZ EDDINE',
       email: userEmail,
       role: 'admin',
       createdAt: Timestamp.now(),
