@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, User } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { FirebaseClientProvider, useAuth, useFirestore } from '@/firebase';
@@ -27,45 +27,66 @@ function LoginPageContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!auth || !firestore) return;
+
+    // Handle the redirect result from Google Sign-In
+    getRedirectResult(auth)
+      .then(async (result) => {
+        setIsGooglePending(false); // Stop loading indicator after redirect
+        if (result && result.user) {
+          // User successfully signed in. The onAuthStateChanged listener will handle the rest.
+        }
+      })
+      .catch((error) => {
+        // Handle Errors here.
+        const errorMessage = error.message || 'An unknown error occurred during Google Sign-In.';
+        setError(errorMessage);
+        toast({
+          variant: 'destructive',
+          title: 'Google Sign-In Failed',
+          description: errorMessage,
+        });
+        setIsGooglePending(false);
+      });
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         if (!firestore) return;
 
-        // Check if user profile exists, if not, create it
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
 
         if (!userDoc.exists()) {
-          // User is new, create a profile
           await setDoc(userDocRef, {
             id: user.uid,
             name: user.displayName || user.email,
             email: user.email,
-            role: 'user', // Default role for new sign-ups
+            role: 'user',
             createdAt: Timestamp.now(),
           });
         }
 
         try {
           const token = await user.getIdToken();
-          // Make a request to the server to set the session cookie
           await fetch('/api/auth/session', {
             method: 'POST',
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
-          // Redirect to dashboard after session is set
           router.push('/dashboard');
-        } catch (error) {
-          console.error('Failed to set session:', error);
+        } catch (sessionError) {
+          console.error('Failed to set session:', sessionError);
           setError('Failed to create a session. Please try again.');
         }
+      } else {
+        // Not signed in, not loading anymore
+        setIsGooglePending(false);
       }
     });
 
     return () => unsubscribe();
-  }, [auth, router, firestore]);
+  }, [auth, firestore, router, toast]);
   
 
   async function handleGoogleSignIn() {
@@ -73,17 +94,18 @@ function LoginPageContent() {
     setError(null);
     const provider = new GoogleAuthProvider();
     try {
-        await signInWithPopup(auth, provider);
-        // The onAuthStateChanged listener will handle the rest.
+      // Use signInWithRedirect instead of signInWithPopup
+      await signInWithRedirect(auth, provider);
+      // The page will redirect, and the logic in useEffect will handle the result
     } catch (error: any) {
-        const errorMessage = error.message || 'An unknown error occurred during Google Sign-In.';
-        setError(errorMessage);
-        toast({
-            variant: 'destructive',
-            title: 'Google Sign-In Failed',
-            description: errorMessage,
-        });
-        setIsGooglePending(false);
+      const errorMessage = error.message || 'An unknown error occurred during Google Sign-In.';
+      setError(errorMessage);
+      toast({
+        variant: 'destructive',
+        title: 'Google Sign-In Failed',
+        description: errorMessage,
+      });
+      setIsGooglePending(false);
     }
   }
 
