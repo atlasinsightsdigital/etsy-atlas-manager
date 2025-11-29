@@ -27,14 +27,16 @@ import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Timestamp } from 'firebase/firestore';
 
+
+// Zod Schema
 const formSchema = z.object({
   etsyOrderId: z.string().min(1, 'Etsy Order ID is required'),
   orderDate: z.string().min(1, 'Order date is required'),
   status: z.enum(['Pending', 'Shipped', 'Delivered', 'Cancelled']),
-  orderPrice: z.coerce.number().positive('Must be a positive number'),
-  orderCost: z.coerce.number().min(0, 'Cannot be negative'),
-  shippingCost: z.coerce.number().min(0, 'Cannot be negative'),
-  additionalFees: z.coerce.number().min(0, 'Cannot be negative'),
+  orderPrice: z.coerce.number().positive('Must be positive'),
+  orderCost: z.coerce.number().min(0),
+  shippingCost: z.coerce.number().min(0),
+  additionalFees: z.coerce.number().min(0),
   notes: z.string().optional(),
   trackingNumber: z.string().optional(),
 });
@@ -57,26 +59,31 @@ function formatDateForInput(date: any): string {
     return adjustedDate.toISOString().split('T')[0];
 }
 
+
 export function OrderForm({ order, setOpen }: OrderFormProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: order ? {
-      ...order,
-      orderDate: formatDateForInput(order.orderDate),
-    } : {
-      etsyOrderId: '',
-      orderDate: new Date().toISOString().split('T')[0],
-      status: 'Pending',
-      orderPrice: 0,
-      orderCost: 0,
-      shippingCost: 0,
-      additionalFees: 0,
-      notes: '',
-      trackingNumber: '',
-    },
+    defaultValues: order
+      ? {
+          ...order,
+          orderDate: formatDateForInput(order.orderDate),
+          notes: order.notes || '',
+          trackingNumber: order.trackingNumber || '',
+        }
+      : {
+          etsyOrderId: '',
+          orderDate: new Date().toISOString().split('T')[0],
+          status: 'Pending',
+          orderPrice: 0,
+          orderCost: 0,
+          shippingCost: 0,
+          additionalFees: 0,
+          notes: '',
+          trackingNumber: '',
+        },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -84,17 +91,17 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
       try {
         if (order) {
           await updateOrder(order.id, values);
-          toast({ title: 'Success', description: 'Order updated successfully.' });
+          toast({ title: 'Success', description: 'Order updated.' });
         } else {
           await addOrder(values as Omit<Order, 'id'>);
-          toast({ title: 'Success', description: 'Order added successfully.' });
+          toast({ title: 'Success', description: 'Order created.' });
         }
         setOpen(false);
       } catch (error) {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: (error as Error).message || 'Something went wrong.',
+          description: (error as Error).message,
         });
       }
     });
@@ -103,6 +110,8 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+
+        {/* FIRST SECTION */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -111,12 +120,13 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
               <FormItem>
                 <FormLabel>Etsy Order ID</FormLabel>
                 <FormControl>
-                  <Input placeholder="123456789" {...field} disabled={!!order} />
+                  <Input {...field} disabled={!!order} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="trackingNumber"
@@ -124,106 +134,76 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
               <FormItem>
                 <FormLabel>Tracking Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="1Z999AA10123456789" {...field} />
+                  <Input {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="orderDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Order Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} disabled={!!order} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Shipped">Shipped</SelectItem>
+                    <SelectItem value="Delivered">Delivered</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* PRICES */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {['orderPrice','orderCost','shippingCost','additionalFees'].map((name) => (
             <FormField
+              key={name}
               control={form.control}
-              name="orderDate"
+              name={name as 'orderPrice' | 'orderCost' | 'shippingCost' | 'additionalFees'}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Order Date</FormLabel>
+                  <FormLabel>{name.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} disabled={!!order} />
+                    <Input type="number" step="0.01" {...field} disabled={name === 'orderPrice' && !!order} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Shipped">Shipped</SelectItem>
-                      <SelectItem value="Delivered">Delivered</SelectItem>
-                      <SelectItem value="Cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          ))}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <FormField
-                control={form.control}
-                name="orderPrice"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Order Price</FormLabel>
-                    <FormControl>
-                    <Input type="number" step="0.01" {...field} disabled={!!order} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="orderCost"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Order Cost</FormLabel>
-                    <FormControl>
-                    <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="shippingCost"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Shipping Cost</FormLabel>
-                    <FormControl>
-                    <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-            <FormField
-                control={form.control}
-                name="additionalFees"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Additional Fees</FormLabel>
-                    <FormControl>
-                    <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-        </div>
+
+        {/* NOTES */}
         <FormField
           control={form.control}
           name="notes"
@@ -231,22 +211,20 @@ export function OrderForm({ order, setOpen }: OrderFormProps) {
             <FormItem>
               <FormLabel>Notes</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Add any internal notes for this order..."
-                  className="resize-none"
-                  {...field}
-                />
+                <Textarea {...field} className="resize-none" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {order ? 'Update Order' : 'Create Order'}
-            </Button>
+          </Button>
         </div>
+
       </form>
     </Form>
   );
