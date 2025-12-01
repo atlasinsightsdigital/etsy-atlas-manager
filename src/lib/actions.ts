@@ -7,12 +7,10 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  serverTimestamp,
   Timestamp,
-} from 'firebase/firestore';
+  FieldValue,
+} from 'firebase-admin/firestore';
 import { getFirestore } from '@/firebase/server-init';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 // ---- INIT FIRESTORE ----
 async function getDb() {
@@ -20,40 +18,35 @@ async function getDb() {
 }
 
 // ---- ORDERS ----
-export async function addOrder(order: Omit<Order, 'id'>) {
+export async function addOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) {
   const db = await getDb();
-  const ordersCollection = collection(db, 'orders');
 
   const orderDateTimestamp = order.orderDate
     ? Timestamp.fromDate(new Date(order.orderDate))
-    : serverTimestamp();
+    : FieldValue.serverTimestamp();
 
   const newOrder = {
     ...order,
     orderDate: orderDateTimestamp,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   };
 
-  addDoc(ordersCollection, newOrder).catch(async (serverError) => {
-    const permissionError = new FirestorePermissionError({
-      path: ordersCollection.path,
-      operation: 'create',
-      requestResourceData: newOrder,
-    });
-    console.error(permissionError.message); // Log server-side for now
-    // In a real scenario, you might re-throw or handle it differently
-    throw permissionError;
-  });
+  try {
+    await db.collection('orders').add(newOrder);
+  } catch (error) {
+    console.error("Firestore 'addOrder' Error:", error);
+    throw new Error('Error creating order.');
+  }
 }
 
 export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) {
   const db = await getDb();
-  const orderRef = doc(db, 'orders', id);
+  const orderRef = db.collection('orders').doc(id);
 
   const updateData: any = {
     ...data,
-    updatedAt: serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   };
 
   // Convert orderDate if present
@@ -61,63 +54,46 @@ export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) 
     updateData.orderDate = Timestamp.fromDate(new Date(data.orderDate));
   }
 
-  updateDoc(orderRef, updateData).catch(async (serverError) => {
-    const permissionError = new FirestorePermissionError({
-      path: orderRef.path,
-      operation: 'update',
-      requestResourceData: updateData,
-    });
-    console.error(permissionError.message); // Log server-side for now
-    throw permissionError;
-  });
+  try {
+    await orderRef.update(updateData);
+  } catch (error) {
+    console.error("Firestore 'updateOrder' Error:", error);
+    throw new Error('Error updating order.');
+  }
 }
 
 // ---- DELETE ORDER ----
 export async function deleteOrder(id: string) {
   const db = await getDb();
-  const orderRef = doc(db, 'orders', id);
-  deleteDoc(orderRef).catch(async (serverError) => {
-    const permissionError = new FirestorePermissionError({
-      path: orderRef.path,
-      operation: 'delete',
-    });
-    console.error(permissionError.message); // Log server-side for now
-    throw permissionError;
-  });
+  try {
+    await db.collection('orders').doc(id).delete();
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    throw new Error('Failed to delete order.');
+  }
 }
 
 // ---- CAPITAL ----
 export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdAt'>) {
   const db = await getDb();
-  const capitalCollection = collection(db, 'capital');
-  
-  const newEntry = {
-    ...entry,
-    createdAt: serverTimestamp(),
-  };
 
-  addDoc(capitalCollection, newEntry).catch(
-    async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: capitalCollection.path,
-        operation: 'create',
-        requestResourceData: newEntry,
-      });
-      console.error(permissionError.message);
-      throw permissionError;
-    }
-  );
+  try {
+    await db.collection('capital').add({
+      ...entry,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Error addCapitalEntry:', error);
+    throw new Error('Unable to add capital entry.');
+  }
 }
 
 export async function deleteCapitalEntry(id: string) {
   const db = await getDb();
-  const capitalRef = doc(db, 'capital', id);
-  deleteDoc(capitalRef).catch(async (serverError) => {
-    const permissionError = new FirestorePermissionError({
-      path: capitalRef.path,
-      operation: 'delete',
-    });
-    console.error(permissionError.message);
-    throw permissionError;
-  });
+  try {
+    await db.collection('capital').doc(id).delete();
+  } catch (error) {
+    console.error('Error deleteCapitalEntry:', error);
+    throw new Error('Unable to delete capital entry.');
+  }
 }
