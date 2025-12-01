@@ -2,13 +2,8 @@
 
 import type { Order, CapitalEntry, User } from './definitions';
 import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
   FieldValue,
   Timestamp,
-  updateDoc,
 } from 'firebase-admin/firestore';
 import { getFirestore } from '@/firebase/server-init';
 import { orders as seedOrders, users as seedUsers } from './data';
@@ -34,7 +29,7 @@ export async function addOrder(order: Omit<Order, 'id'>) {
   };
 
   try {
-    await addDoc(collection(db, 'orders'), newOrder);
+    await db.collection('orders').add(newOrder);
   } catch (error) {
     console.error("Firestore 'addOrder' Error:", error);
     throw new Error('Error creating order.');
@@ -43,7 +38,7 @@ export async function addOrder(order: Omit<Order, 'id'>) {
 
 export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) {
   const db = await getDb();
-  const orderRef = doc(db, 'orders', id);
+  const orderRef = db.doc(`orders/${id}`);
 
   const updateData: any = {
     ...data,
@@ -67,7 +62,7 @@ export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) 
 export async function deleteOrder(id: string) {
   const db = await getDb();
   try {
-    await doc(db, 'orders', id).delete();
+    await db.doc(`orders/${id}`).delete();
   } catch (error) {
     console.error('Error deleting order:', error);
     throw new Error('Failed to delete order.');
@@ -77,10 +72,14 @@ export async function deleteOrder(id: string) {
 // ---- CAPITAL ----
 export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdAt'>) {
   const db = await getDb();
+  const transactionDateTimestamp = entry.transactionDate
+    ? Timestamp.fromDate(new Date(entry.transactionDate))
+    : FieldValue.serverTimestamp();
 
   try {
-    await addDoc(collection(db, 'capital'), {
+    await db.collection('capital').add({
       ...entry,
+      transactionDate: transactionDateTimestamp,
       createdAt: FieldValue.serverTimestamp(),
     });
   } catch (error) {
@@ -92,7 +91,7 @@ export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdA
 export async function deleteCapitalEntry(id: string) {
   const db = await getDb();
   try {
-    await doc(db, 'capital', id).delete();
+    await db.doc(`capital/${id}`).delete();
   } catch (error) {
     console.error('Error deleteCapitalEntry:', error);
     throw new Error('Unable to delete capital entry.');
@@ -102,28 +101,33 @@ export async function deleteCapitalEntry(id: string) {
 // ---- SEEDING ----
 export async function seedDatabase() {
   const db = await getDb();
+  const batch = db.batch();
+
   try {
     // Seed Users
-    const usersCollection = collection(db, 'users');
-    for (const user of seedUsers) {
-      // In a real app, you would check for existence or use a unique ID from auth
-      await addDoc(usersCollection, {
+    const usersCollection = db.collection('users');
+    seedUsers.forEach(user => {
+      const docRef = usersCollection.doc(); // Auto-generate ID
+      batch.set(docRef, {
         ...user,
         createdAt: FieldValue.serverTimestamp(),
       });
-    }
+    });
 
     // Seed Orders
-    const ordersCollection = collection(db, 'orders');
-    for (const order of seedOrders) {
-      await addDoc(ordersCollection, {
+    const ordersCollection = db.collection('orders');
+    seedOrders.forEach(order => {
+      const docRef = ordersCollection.doc(); // Auto-generate ID
+      batch.set(docRef, {
         ...order,
         orderDate: Timestamp.fromDate(new Date()), // Use a consistent date for seeds
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
-    }
+    });
 
+    await batch.commit();
+    
     return { success: true, message: 'Database seeded successfully!' };
   } catch (error) {
     console.error('Error seeding database:', error);
