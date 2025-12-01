@@ -1,16 +1,17 @@
 'use server';
 
-import type { Order, CapitalEntry } from './definitions';
+import type { Order, CapitalEntry, User } from './definitions';
 import {
-  collection,
-  doc,
   addDoc,
-  updateDoc,
+  collection,
   deleteDoc,
-  Timestamp,
+  doc,
   FieldValue,
+  Timestamp,
+  updateDoc,
 } from 'firebase-admin/firestore';
 import { getFirestore } from '@/firebase/server-init';
+import { orders as seedOrders, users as seedUsers } from './data';
 
 // ---- INIT FIRESTORE ----
 async function getDb() {
@@ -18,7 +19,7 @@ async function getDb() {
 }
 
 // ---- ORDERS ----
-export async function addOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) {
+export async function addOrder(order: Omit<Order, 'id'>) {
   const db = await getDb();
 
   const orderDateTimestamp = order.orderDate
@@ -33,7 +34,7 @@ export async function addOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedA
   };
 
   try {
-    await db.collection('orders').add(newOrder);
+    await addDoc(collection(db, 'orders'), newOrder);
   } catch (error) {
     console.error("Firestore 'addOrder' Error:", error);
     throw new Error('Error creating order.');
@@ -42,7 +43,7 @@ export async function addOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedA
 
 export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) {
   const db = await getDb();
-  const orderRef = db.collection('orders').doc(id);
+  const orderRef = doc(db, 'orders', id);
 
   const updateData: any = {
     ...data,
@@ -66,7 +67,7 @@ export async function updateOrder(id: string, data: Partial<Omit<Order, 'id'>>) 
 export async function deleteOrder(id: string) {
   const db = await getDb();
   try {
-    await db.collection('orders').doc(id).delete();
+    await doc(db, 'orders', id).delete();
   } catch (error) {
     console.error('Error deleting order:', error);
     throw new Error('Failed to delete order.');
@@ -78,7 +79,7 @@ export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdA
   const db = await getDb();
 
   try {
-    await db.collection('capital').add({
+    await addDoc(collection(db, 'capital'), {
       ...entry,
       createdAt: FieldValue.serverTimestamp(),
     });
@@ -91,9 +92,42 @@ export async function addCapitalEntry(entry: Omit<CapitalEntry, 'id' | 'createdA
 export async function deleteCapitalEntry(id: string) {
   const db = await getDb();
   try {
-    await db.collection('capital').doc(id).delete();
+    await doc(db, 'capital', id).delete();
   } catch (error) {
     console.error('Error deleteCapitalEntry:', error);
     throw new Error('Unable to delete capital entry.');
+  }
+}
+
+// ---- SEEDING ----
+export async function seedDatabase() {
+  const db = await getDb();
+  try {
+    // Seed Users
+    const usersCollection = collection(db, 'users');
+    for (const user of seedUsers) {
+      // In a real app, you would check for existence or use a unique ID from auth
+      await addDoc(usersCollection, {
+        ...user,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    // Seed Orders
+    const ordersCollection = collection(db, 'orders');
+    for (const order of seedOrders) {
+      await addDoc(ordersCollection, {
+        ...order,
+        orderDate: Timestamp.fromDate(new Date()), // Use a consistent date for seeds
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+
+    return { success: true, message: 'Database seeded successfully!' };
+  } catch (error) {
+    console.error('Error seeding database:', error);
+    // Return a serializable error object
+    return { success: false, message: 'Failed to seed database.' };
   }
 }

@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -7,17 +7,44 @@ import {
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
+  SidebarFooter,
+  SidebarSeparator
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
   ShoppingCart,
   Users,
   Landmark,
+  Database,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { seedDatabase } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
+
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+
+  const handleSeed = () => {
+    startTransition(async () => {
+      const result = await seedDatabase();
+      if (result.success) {
+        toast({
+          title: "Database Seeded",
+          description: result.message,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Seeding Failed",
+          description: result.message,
+        });
+      }
+    });
+  };
 
   const menuItems = [
     {
@@ -94,6 +121,17 @@ export function DashboardSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
+      <SidebarSeparator />
+        <SidebarFooter className="p-2">
+            <Button variant="outline" onClick={handleSeed} disabled={isPending}>
+            {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+                <Database className="mr-2 h-4 w-4" />
+            )}
+            Seed Database
+            </Button>
+        </SidebarFooter>
     </>
   );
 }
