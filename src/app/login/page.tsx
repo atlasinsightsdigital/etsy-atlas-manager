@@ -57,11 +57,12 @@ function LoginPageContent() {
         const userDoc = await getDoc(userDocRef);
 
         if (!userDoc.exists()) {
+          // If the user document doesn't exist, create it with a default role.
           await setDoc(userDocRef, {
             id: user.uid,
             name: user.displayName || user.email,
             email: user.email,
-            role: 'user',
+            role: 'user', // Assign a default role
             createdAt: Timestamp.now(),
           });
         }

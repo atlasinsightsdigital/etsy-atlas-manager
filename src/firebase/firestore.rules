@@ -39,16 +39,16 @@ service cloud.firestore {
     // Collection: orders
     // =================================
     match /orders/{orderId} {
-      // Admins have full CRUD access
-      allow read, create, update, delete: if isAdmin();
+      // Any signed-in user can perform CRUD operations for now
+      allow read, write: if isSignedIn();
     }
 
     // =================================
     // Collection: capital
     // =================================
     match /capital/{capitalId} {
-       // Admins have full CRUD access
-      allow read, create, update, delete: if isAdmin();
+       // Any signed-in user can perform CRUD operations for now
+      allow read, write: if isSignedIn();
     }
   }
 }
