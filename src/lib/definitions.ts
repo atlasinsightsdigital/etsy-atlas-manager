@@ -8,13 +8,14 @@ export type User = {
   name: string; 
   email: string;
   role: 'admin' | 'user';
-  createdAt: any;
+  createdAt: FirestoreDate;
+  updatedAt?: FirestoreDate;
 };
 
 export type Order = {
   id: string;
   etsyOrderId: string;
-  orderDate: string;
+  orderDate: FirestoreDate;
   status: 'Pending' | 'Shipped' | 'Delivered' | 'Cancelled';
   orderPrice: number;
   orderCost: number;
@@ -29,10 +30,21 @@ export type Order = {
 export type CapitalEntry = {
   id: string;
   createdAt: FirestoreDate;
-  transactionDate: string;
+  transactionDate: FirestoreDate;
   type: 'Deposit' | 'Withdrawal';
   amount: number;
   source: 'Etsy Payout' | 'Loan' | 'Dividend' | 'Investment';
   submittedBy: string; 
   notes?: string;
+  updatedAt?: FirestoreDate;
 };
+
+// Utility types for forms
+export type CreateOrderInput = Omit<Order, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateOrderInput = Partial<CreateOrderInput>;
+
+export type CreateCapitalEntryInput = Omit<CapitalEntry, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateCapitalEntryInput = Partial<CreateCapitalEntryInput>;
+
+export type CreateUserInput = Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateUserInput = Partial<CreateUserInput>;

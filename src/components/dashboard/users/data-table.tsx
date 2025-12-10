@@ -22,14 +22,11 @@ function formatDate(date: any): string {
     return format(jsDate, 'dd MMM yyyy');
 }
 
-
-// --- Data Table Component ---
 interface DataTableProps {
   data: User[];
-  isLoading: boolean;
 }
 
-export function UsersDataTable({ data, isLoading }: DataTableProps) {
+export function DataTable({ data }: DataTableProps) {
   const [filter, setFilter] = React.useState('');
 
   const filteredData = data.filter((item) => {
@@ -39,6 +36,15 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
         return typeof value === 'string' && value.toLowerCase().includes(filter.toLowerCase());
     });
   });
+
+  // Helper to get cell value
+  const getCellValue = (row: User, columnId: string) => {
+    const column = columns.find(c => c.id === columnId);
+    if (column?.cell) {
+      return column.cell(row);
+    }
+    return row[columnId as keyof User];
+  };
 
   const renderMobileCard = (row: User) => (
     <Card key={row.id} className="mb-4">
@@ -64,12 +70,12 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
         />
       </div>
 
-       {/* Mobile View */}
-       <div className="sm:hidden">
-        {isLoading ? <p className="text-center py-8 text-muted-foreground">Loading users...</p> : filteredData.length > 0 ? (
+      {/* Mobile View */}
+      <div className="sm:hidden">
+        {filteredData.length > 0 ? (
             filteredData.map(renderMobileCard)
         ) : (
-            <p className="text-center text-muted-foreground py-8">No results.</p>
+            <p className="text-center text-muted-foreground py-8">No users found.</p>
         )}
       </div>
 
@@ -84,18 +90,12 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Loading...
-                </TableCell>
-              </TableRow>
-            ) : filteredData.length ? (
+            {filteredData.length ? (
               filteredData.map((row) => (
                 <TableRow key={row.id}>
                   {columns.map((column) => (
                     <TableCell key={column.id}>
-                       {column.cell ? column.cell(row) : (row[column.id as keyof User] as string)}
+                      {getCellValue(row, column.id)}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -106,7 +106,7 @@ export function UsersDataTable({ data, isLoading }: DataTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  No users found.
                 </TableCell>
               </TableRow>
             )}

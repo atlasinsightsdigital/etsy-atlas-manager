@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { OrderForm } from './order-form';
-import { deleteOrder } from '@/lib/actions';
+import { deleteOrder } from '@/lib/orders-actions';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';

@@ -1,31 +1,25 @@
-import React from 'react';
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarInset,
-} from '@/components/ui/sidebar';
-import { DashboardSidebar } from '@/components/dashboard/sidebar';
-import { DashboardHeader } from '@/components/dashboard/header';
-import { FirebaseClientProvider } from '@/firebase';
+import { DashboardSidebar as Sidebar } from '@/components/dashboard/sidebar';
+import { AuthenticatedHeader } from '@/components/dashboard/authenticated-header';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 export default function DashboardLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <FirebaseClientProvider>
-      <SidebarProvider defaultOpen>
-        <Sidebar>
-          <DashboardSidebar />
-        </Sidebar>
-        <SidebarInset className="flex flex-col min-h-svh">
-          <DashboardHeader />
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen flex flex-col">
+      <AuthenticatedHeader />
+      <div className="flex-1 flex">
+        <div className="w-64"> {/* Fixed width for sidebar */}
+          <Sidebar />
+        </div>
+        <main className="flex-1 p-6">
+          <ErrorBoundary>
             {children}
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
-    </FirebaseClientProvider>
+          </ErrorBoundary>
+        </main>
+      </div>
+    </div>
   );
 }

@@ -1,92 +1,125 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { useUser, useAuth } from '@/firebase';
-import { LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { useAuth } from '@/firebase'; // Remove useUser, only use useAuth
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LogOut, User, Settings, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { signOut } from 'firebase/auth';
+import { getAuth, signOut } from 'firebase/auth';
+import { initializeFirebase } from '@/firebase';
 
-export default function AuthenticatedHeader() {
+export function AuthenticatedHeader() {
+  const { user, loading } = useAuth(); // Changed from useUser to useAuth
+  const { toast } = useToast();
   const router = useRouter();
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-  const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  useEffect(() => {
-    setCurrentDateTime(new Date());
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-  
-  const formattedDate = currentDateTime ? format(currentDateTime, 'eeee, MMMM do, yyyy') : '...';
-  const formattedTime = currentDateTime ? format(currentDateTime, 'HH:mm:ss') : '...';
-  
-  const handleSignOut = async () => {
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
     try {
-      // Sign out from the client-side Firebase session
+      const { auth } = initializeFirebase();
       await signOut(auth);
-      // Clear the session cookie by calling the API
-      await fetch('/api/auth/session', { method: 'DELETE' });
-      // This will trigger a redirect via onAuthStateChanged listener on login page or middleware if re-enabled
+      
+      // Clear session
+      await fetch('/api/auth/session', {
+        method: 'DELETE',
+      });
+      
+      toast({
+        title: 'Logged out',
+        description: 'You have been successfully logged out.',
+      });
+      
       router.push('/login');
-      router.refresh(); // Ensure the page reloads and state is cleared
     } catch (error) {
-      console.error('Failed to sign out:', error);
+      console.error('Logout error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Logout failed',
+        description: 'Failed to log out. Please try again.',
+      });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
-  const displayName = user?.name || user?.displayName || user?.email;
-  const userInitial = displayName ? displayName.charAt(0).toUpperCase() : '?';
+  if (loading) {
+    return (
+      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+        <div className="ml-auto flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="text-sm text-muted-foreground">Loading...</span>
+        </div>
+      </header>
+    );
+  }
+
+  if (!user) {
+    return null; // Or redirect to login
+  }
+
+  const userInitials = user.displayName 
+    ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase()
+    : user.email?.[0].toUpperCase() || 'U';
 
   return (
-    <div className="flex w-full items-center justify-end gap-4 text-sm">
-      <div className="text-right">
-        <p className="font-semibold text-foreground">Hi, {isUserLoading ? '...' : displayName}</p>
-        <p className="text-muted-foreground">{formattedDate}</p>
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <div className="ml-auto flex items-center gap-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                <AvatarFallback>{userInitials}</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  {user.displayName || 'User'}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {user.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+              <User className="mr-2 h-4 w-4" />
+              <span>Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={handleLogout} 
+              disabled={isLoggingOut}
+              className="text-destructive focus:text-destructive"
+            >
+              {isLoggingOut ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <LogOut className="mr-2 h-4 w-4" />
+              )}
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <div className="text-lg font-mono tracking-tighter rounded-md bg-muted px-2 py-1 min-w-[80px] text-center">
-        {formattedTime}
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.photoURL || ''} alt="User avatar" />
-              <AvatarFallback>{isUserLoading ? '...' : userInitial}</AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">
-                {isUserLoading ? 'Loading...' : displayName}
-              </p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {isUserLoading ? '' : user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User'}
-              </p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    </header>
   );
 }

@@ -1,93 +1,221 @@
 'use client';
 
-import { useCollection } from '@/firebase';
-import { CapitalDataTable } from '@/components/dashboard/capital/data-table';
+import { useState, useMemo } from 'react';
+import { collection, query, orderBy, where } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { DataTable } from '@/components/dashboard/capital/data-table';
+import { columns } from '@/components/dashboard/capital/columns';
+import { Button } from '@/components/ui/button';
+import { Plus, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { CapitalEntryForm } from '@/components/dashboard/capital/capital-form';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Landmark, TrendingDown, TrendingUp } from 'lucide-react';
-import type { CapitalEntry } from '@/lib/definitions';
-import { collection, query } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-import { useMemo } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getCapitalSummary } from '@/lib/actions';
+import { useEffect } from 'react';
 
 export default function CapitalPage() {
-  const firestore = useFirestore();
-  
-  const capitalQuery = useMemo(() => 
-    firestore ? query(collection(firestore, 'capital')) : null,
-    [firestore]
-  );
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { firestore } = initializeFirebase();
+  const { toast } = useToast();
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [summary, setSummary] = useState({
+    totalDeposits: 0,
+    totalWithdrawals: 0,
+    netCapital: 0,
+  });
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
 
-  const { data: entries, isLoading } = useCollection<CapitalEntry>(capitalQuery);
+  // Fetch capital summary
+  useEffect(() => {
+    const fetchSummary = async () => {
+      setIsLoadingSummary(true);
+      try {
+        const data = await getCapitalSummary();
+        setSummary(data);
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Error loading summary',
+          description: (error as Error).message,
+        });
+      } finally {
+        setIsLoadingSummary(false);
+      }
+    };
+    
+    fetchSummary();
+  }, [toast]);
 
-  const safeEntries = entries || [];
+  // Create memoized query for capital entries
+  const capitalQuery = useMemo(() => {
+    const capitalCollection = collection(firestore, 'capital');
+    let q = query(capitalCollection, orderBy('createdAt', 'desc'));
+    
+    // Apply type filter if not "all"
+    if (typeFilter !== 'all') {
+      // Note: This requires a composite index in Firestore
+      // For now, we'll filter client-side
+      return q;
+    }
+    
+    return q;
+  }, [firestore, typeFilter]);
 
-  const totalDeposits = safeEntries
-    .filter(e => e.type === 'Deposit')
-    .reduce((sum, entry) => sum + entry.amount, 0);
+  const { data: entries, isLoading, error } = useCollection(capitalQuery);
 
-  const totalWithdrawals = safeEntries
-    .filter(e => e.type === 'Withdrawal')
-    .reduce((sum, entry) => sum + entry.amount, 0);
+  // Handle errors
+  if (error) {
+    toast({
+      variant: 'destructive',
+      title: 'Error loading capital entries',
+      description: error.message,
+    });
+  }
 
-  const totalCapital = totalDeposits - totalWithdrawals;
+  // Filter entries client-side
+  const filteredEntries = useMemo(() => {
+    if (!entries) return [];
+    if (typeFilter === 'all') return entries;
+    return entries.filter(entry => entry.type === typeFilter);
+  }, [entries, typeFilter]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-headline">Capital Management</h1>
-        <p className="text-muted-foreground">
-          Track all capital movements like deposits and withdrawals.
-        </p>
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Capital Management</h2>
+          <p className="text-muted-foreground">
+            Track your business capital inflows and outflows.
+          </p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="Deposit">Deposits</SelectItem>
+              <SelectItem value="Withdrawal">Withdrawals</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Add Entry
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add Capital Entry</DialogTitle>
+                <DialogDescription>
+                  Record a new capital deposit or withdrawal.
+                </DialogDescription>
+              </DialogHeader>
+              <CapitalEntryForm setOpen={setIsAddDialogOpen} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-        <Card className="shadow-md sm:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Capital</CardTitle>
-            <Landmark className="h-5 w-5 text-muted-foreground" />
+      {/* Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Deposits</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold tracking-tight">
-              {isLoading ? '...' : totalCapital.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
-            </p>
+            <div className="text-2xl font-bold">
+              {isLoadingSummary ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                summary.totalDeposits.toLocaleString('fr-MA', {
+                  style: 'currency',
+                  currency: 'MAD',
+                })
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
-              Total deposits minus total withdrawals.
+              Total capital injected into business
             </p>
           </CardContent>
         </Card>
         
-        <Card className="shadow-md bg-primary/10 border-primary/50 sm:col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-primary/80">Total Deposits</CardTitle>
-            <TrendingUp className="h-5 w-5 text-primary/80" />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Withdrawals</CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-bold tracking-tight text-primary">
-            {isLoading ? '...' : totalDeposits.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
-            </p>
-            <p className="text-xs text-primary/70">
-              Total funds added to capital.
+            <div className="text-2xl font-bold">
+              {isLoadingSummary ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                summary.totalWithdrawals.toLocaleString('fr-MA', {
+                  style: 'currency',
+                  currency: 'MAD',
+                })
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total capital withdrawn from business
             </p>
           </CardContent>
         </Card>
         
-        <Card className="shadow-md bg-destructive/10 border-destructive/50 sm:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-destructive/80">Total Withdrawals</CardTitle>
-            <TrendingDown className="h-5 w-5 text-destructive/80" />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Net Capital</CardTitle>
+            <Wallet className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <p className="text-xl font-bold tracking-tight text-destructive">
-            {isLoading ? '...' : totalWithdrawals.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
-            </p>
-            <p className="text-xs text-destructive/70">
-              Total funds withdrawn from capital.
+            <div className={`text-2xl font-bold ${summary.netCapital >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {isLoadingSummary ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                summary.netCapital.toLocaleString('fr-MA', {
+                  style: 'currency',
+                  currency: 'MAD',
+                })
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Current available capital
             </p>
           </CardContent>
         </Card>
       </div>
 
-      <CapitalDataTable data={safeEntries} isLoading={isLoading} />
+      {/* Data Table */}
+      <div className="rounded-md border">
+        {isLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <span className="ml-2">Loading capital entries...</span>
+          </div>
+        ) : filteredEntries && filteredEntries.length > 0 ? (
+          <DataTable columns={columns} data={filteredEntries} />
+        ) : (
+          <div className="p-8 text-center text-muted-foreground">
+            {typeFilter !== 'all' 
+              ? `No ${typeFilter.toLowerCase()} entries found.`
+              : 'No capital entries found. Add your first entry!'}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

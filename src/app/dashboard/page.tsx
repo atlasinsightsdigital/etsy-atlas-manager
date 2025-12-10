@@ -1,7 +1,8 @@
 'use client';
 
 import { Overview } from '@/components/dashboard/overview';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection } from '@/firebase/firestore/use-collection'; // Import directly
+import { useFirestore } from '@/firebase'; // This should work now
 import type { Order } from '@/lib/definitions';
 import { collection, query } from 'firebase/firestore';
 import { useMemo } from 'react';

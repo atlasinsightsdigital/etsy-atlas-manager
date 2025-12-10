@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
@@ -22,7 +23,8 @@ import { Button } from '@/components/ui/button';
 import { seedDatabase } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
-
+export const Sidebar = DashboardSidebar;
+export default DashboardSidebar;
 export function DashboardSidebar() {
   const pathname = usePathname();
   const { toast } = useToast();

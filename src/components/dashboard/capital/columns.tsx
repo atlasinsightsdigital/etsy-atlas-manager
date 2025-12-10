@@ -91,7 +91,7 @@ const typeConfigMap: { [key in CapitalEntry['type']]: { variant: "default" | "de
 };
 
 
-export const columns: {
+export const  columns: {
     header: string;
     id: keyof CapitalEntry | 'actions';
     cell?: (row: CapitalEntry) => React.ReactNode;

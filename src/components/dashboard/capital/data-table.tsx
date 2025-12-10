@@ -1,16 +1,6 @@
 'use client';
+
 import * as React from 'react';
-import { Button } from '@/components/ui/button';
-import type { CapitalEntry } from '@/lib/definitions';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { CapitalEntryForm } from './capital-form';
 import {
   Table,
   TableBody,
@@ -20,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { PlusCircle } from 'lucide-react';
+import type { CapitalEntry } from '@/lib/definitions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Timestamp } from 'firebase/firestore';
 import { format } from 'date-fns';
@@ -32,85 +22,91 @@ function formatDate(date: any): string {
     return format(jsDate, 'dd MMM yyyy');
 }
 
-// --- Data Table Component ---
 interface DataTableProps {
   data: CapitalEntry[];
-  isLoading: boolean;
 }
 
-export function CapitalDataTable({ data, isLoading }: DataTableProps) {
+export function DataTable({ data }: DataTableProps) {
   const [filter, setFilter] = React.useState('');
-  const [open, setOpen] = React.useState(false);
 
   const filteredData = data.filter((item) => {
-    const searchableFields: (keyof CapitalEntry)[] = ['type', 'source', 'submittedBy', 'notes'];
+    const searchableFields: (keyof CapitalEntry)[] = ['source', 'submittedBy', 'type'];
     return searchableFields.some(field => {
         const value = item[field];
         return typeof value === 'string' && value.toLowerCase().includes(filter.toLowerCase());
     });
   });
 
-  const renderMobileCard = (row: CapitalEntry) => {
-    const actionsCell = columns.find(c => c.id === 'actions');
-    const typeCell = columns.find(c => c.id === 'type');
-    const amountCell = columns.find(c => c.id === 'amount');
+  // Helper to get cell value
+  const getCellValue = (row: CapitalEntry, columnId: string) => {
+    const column = columns.find(c => c.id === columnId);
+    if (column?.cell) {
+      return column.cell(row);
+    }
+    return row[columnId as keyof CapitalEntry];
+  };
 
+  const renderMobileCard = (row: CapitalEntry) => {
+    const typeCell = columns.find(c => c.id === 'type')?.cell?.(row);
+    const amountCell = columns.find(c => c.id === 'amount')?.cell?.(row);
+    
     return (
-        <Card key={row.id} className="mb-4">
-        <CardContent className="p-4 space-y-2">
-            <div className="flex justify-between items-start">
-                <div>
-                    <p className="font-bold">{row.source}</p>
-                    <p className="text-sm text-muted-foreground">{formatDate(row.transactionDate)}</p>
-                </div>
-                {actionsCell?.cell?.(row)}
+      <Card key={row.id} className="mb-4">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="font-bold">{row.source}</p>
+              <p className="text-sm text-muted-foreground">{formatDate(row.transactionDate)}</p>
             </div>
-            <div className="flex justify-between items-center">
-              {typeCell?.cell?.(row)}
-              {amountCell?.cell?.(row)}
+            {typeCell}
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm text-muted-foreground">Amount</p>
+              {amountCell ? (
+                <div className="text-lg font-bold">{amountCell}</div>
+              ) : (
+                <p className={`text-lg font-bold ${row.type === 'Deposit' ? 'text-green-600' : 'text-red-600'}`}>
+                  {row.type === 'Deposit' ? '+' : '-'}
+                  {row.amount.toLocaleString('fr-MA', { style: 'currency', currency: 'MAD' })}
+                </p>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground pt-2">Submitted by: {row.submittedBy}</p>
+          </div>
+          
+          <div className="text-sm">
+            <p className="text-muted-foreground">Submitted by: {row.submittedBy}</p>
+            {row.notes && (
+              <p className="text-muted-foreground pt-1">Notes: {row.notes}</p>
+            )}
+          </div>
+          
+          <p className="text-xs text-muted-foreground pt-2">
+            Entry date: {formatDate(row.createdAt)}
+          </p>
         </CardContent>
-        </Card>
+      </Card>
     );
-  }
+  };
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row items-center justify-between py-4 gap-2">
+      <div className="flex items-center justify-between py-4">
         <Input
-          placeholder="Filter by source, submitter..."
+          placeholder="Filter by source, submitter, type..."
           value={filter}
           onChange={(event) => setFilter(event.target.value)}
           className="w-full sm:max-w-sm"
         />
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              New Entry
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Add New Capital Entry</DialogTitle>
-              <DialogDescription>
-                Fill in the details for the new capital entry.
-              </DialogDescription>
-            </DialogHeader>
-            <CapitalEntryForm setOpen={setOpen} />
-          </DialogContent>
-        </Dialog>
       </div>
-      
+
       {/* Mobile View */}
       <div className="sm:hidden">
-        {isLoading ? (
-          <p className="text-center text-muted-foreground py-8">Loading entries...</p>
-        ) : filteredData.length > 0 ? (
+        {filteredData.length > 0 ? (
             filteredData.map(renderMobileCard)
         ) : (
-            <p className="text-center text-muted-foreground py-8">No results.</p>
+            <p className="text-center text-muted-foreground py-8">No capital entries found.</p>
         )}
       </div>
 
@@ -125,18 +121,12 @@ export function CapitalDataTable({ data, isLoading }: DataTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Loading...
-                </TableCell>
-              </TableRow>
-            ) : filteredData.length ? (
+            {filteredData.length ? (
               filteredData.map((row) => (
                 <TableRow key={row.id}>
                   {columns.map((column) => (
                     <TableCell key={column.id}>
-                      {column.cell ? column.cell(row) : (row[column.id as keyof CapitalEntry] as string)}
+                      {getCellValue(row, column.id)}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -147,7 +137,7 @@ export function CapitalDataTable({ data, isLoading }: DataTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  No capital entries found.
                 </TableCell>
               </TableRow>
             )}
