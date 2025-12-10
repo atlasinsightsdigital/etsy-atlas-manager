@@ -1,7 +1,7 @@
 'use server';
 
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
-import { getFirestoreAdmin } from '@/lib/admin';
+import { getFirestore } from '@/firebase/server-init';
 import type { CapitalEntry } from './definitions';
 import { z } from 'zod';
 
@@ -18,7 +18,7 @@ export const capitalEntrySchema = z.object({
 export type CapitalEntryInput = z.infer<typeof capitalEntrySchema>;
 
 export async function createCapitalEntry(data: CapitalEntryInput) {
-  const db = await getFirestoreAdmin();
+  const db = await getFirestore();
   
   capitalEntrySchema.parse(data);
   
@@ -38,7 +38,7 @@ export async function createCapitalEntry(data: CapitalEntryInput) {
 }
 
 export async function updateCapitalEntry(id: string, data: Partial<CapitalEntryInput>) {
-  const db = await getFirestoreAdmin();
+  const db = await getFirestore();
   
   if (Object.keys(data).length > 0) {
     capitalEntrySchema.partial().parse(data);
@@ -63,7 +63,7 @@ export async function updateCapitalEntry(id: string, data: Partial<CapitalEntryI
 }
 
 export async function deleteCapitalEntry(id: string) {
-  const db = await getFirestoreAdmin();
+  const db = await getFirestore();
   
   try {
     await db.doc(`capital/${id}`).delete();
@@ -75,7 +75,7 @@ export async function deleteCapitalEntry(id: string) {
 }
 
 export async function getCapitalSummary() {
-  const db = await getFirestoreAdmin();
+  const db = await getFirestore();
   
   try {
     const snapshot = await db.collection('capital').get();

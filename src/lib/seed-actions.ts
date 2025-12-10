@@ -1,48 +1,47 @@
 'use server';
 
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
-import { getFirestoreAdmin } from '@/lib/admin';
+import { getFirestore } from '@/firebase/server-init';
 import { orders as seedOrders, users as seedUsers } from './data';
 
 export async function seedDatabase() {
   try {
-    const db = await getFirestoreAdmin();
+    const db = await getFirestore();
     
+    // Check if we already have data
     const [ordersSnapshot, usersSnapshot] = await Promise.all([
-      db.collection('orders').limit(1).get(),
-      db.collection('users').limit(1).get(),
+      db.collection('orders').get(),
+      db.collection('users').get(),
     ]);
 
-    if (!ordersSnapshot.empty || !usersSnapshot.empty) {
+    // Only seed if collections are empty
+    if (ordersSnapshot.size > 0 || usersSnapshot.size > 0) {
       return { 
         success: false, 
-        message: 'La base de données contient déjà des données. Le peuplement a été ignoré.' 
+        message: 'Database already contains data. Please clear existing data first.' 
       };
     }
 
+    // Create a new batch
     const batch = db.batch();
 
+    // Seed Users
     const usersCollection = db.collection('users');
     seedUsers.forEach(user => {
       const docRef = usersCollection.doc();
       batch.set(docRef, {
         ...user,
         createdAt: FieldValue.serverTimestamp(),
-        id: docRef.id
       });
     });
 
+    // Seed Orders
     const ordersCollection = db.collection('orders');
-    seedOrders.forEach((order, index) => {
+    seedOrders.forEach(order => {
       const docRef = ordersCollection.doc();
-      // Use past dates for more realistic data
-      const orderDate = new Date();
-      orderDate.setMonth(orderDate.getMonth() - (index % 6));
-      orderDate.setDate(Math.floor(Math.random() * 28) + 1);
-
       batch.set(docRef, {
         ...order,
-        orderDate: Timestamp.fromDate(orderDate),
+        orderDate: Timestamp.fromDate(new Date(order.orderDate || Date.now())),
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -52,14 +51,14 @@ export async function seedDatabase() {
     
     return { 
       success: true, 
-      message: `Base de données peuplée avec ${seedUsers.length} utilisateurs et ${seedOrders.length} commandes.` 
+      message: `Successfully seeded database with ${seedUsers.length} users and ${seedOrders.length} orders!` 
     };
     
   } catch (error) {
-    console.error('Erreur lors du peuplement de la base de données:', error);
+    console.error('Error seeding database:', error);
     return { 
       success: false, 
-      message: `Échec du peuplement: ${error instanceof Error ? error.message : 'Erreur inconnue'}` 
+      message: `Failed to seed database: ${error instanceof Error ? error.message : 'Unknown error'}` 
     };
   }
 }

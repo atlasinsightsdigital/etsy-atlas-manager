@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuth } from 'firebase-admin/auth';
-import { getAdminApp } from '@/lib/admin';
+import { getFirebaseAdminApp } from '@/firebase/server-init';
 
 // Cookie configuration
 const SESSION_COOKIE_NAME = 'session';
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get Firebase Admin app instance
-    const app = await getAdminApp();
+    const app = await getFirebaseAdminApp();
     
     // Create session cookie
     const sessionCookie = await getAuth(app).createSessionCookie(idToken, { 
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get Firebase Admin app instance
-    const app = await getAdminApp();
+    const app = await getFirebaseAdminApp();
     
     // Verify the session cookie
     const decodedClaims = await getAuth(app).verifySessionCookie(sessionCookie, true);
@@ -241,7 +241,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Get Firebase Admin app instance
-    const app = await getAdminApp();
+    const app = await getFirebaseAdminApp();
     
     // Verify current session first
     const decodedClaims = await getAuth(app).verifySessionCookie(sessionCookie, true);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useUser } from '@/firebase/provider';
+import { useAuth } from '@/firebase'; // Remove useUser, only use useAuth
 import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu, 
@@ -17,10 +17,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { getAuth, signOut } from 'firebase/auth';
 import { initializeFirebase } from '@/firebase';
-import { firebaseConfig } from '@/firebase/config';
 
 export function AuthenticatedHeader() {
-  const { user, isUserLoading: loading } = useUser();
+  const { user, loading } = useAuth(); // Changed from useUser to useAuth
   const { toast } = useToast();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -28,7 +27,7 @@ export function AuthenticatedHeader() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      const { auth } = initializeFirebase(firebaseConfig);
+      const { auth } = initializeFirebase();
       await signOut(auth);
       
       // Clear session

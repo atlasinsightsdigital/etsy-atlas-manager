@@ -1,7 +1,7 @@
 'use server';
 
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
-import { getFirestoreAdmin } from '@/lib/admin';
+import { getFirestore } from '@/firebase/server-init';
 import type { Order } from './definitions';
 import { z } from 'zod';
 
@@ -25,7 +25,7 @@ type OrderInput = z.infer<typeof orderSchema>;
 
 // ✅ Only export ASYNC functions
 export async function createOrder(data: OrderInput) {
-  const db = await getFirestoreAdmin();
+  const db = await getFirestore();
   
   // Validate input
   orderSchema.parse(data);
@@ -72,7 +72,7 @@ export async function createOrder(data: OrderInput) {
 }
 
 export async function updateOrder(id: string, data: Partial<OrderInput>) {
-  const db = await getFirestoreAdmin();
+  const db = await getFirestore();
   
   // Validate input if provided
   if (Object.keys(data).length > 0) {
@@ -99,7 +99,7 @@ export async function updateOrder(id: string, data: Partial<OrderInput>) {
 }
 
 export async function deleteOrder(id: string) {
-  const db = await getFirestoreAdmin();
+  const db = await getFirestore();
   
   try {
     await db.doc(`orders/${id}`).delete();
@@ -111,7 +111,7 @@ export async function deleteOrder(id: string) {
 }
 
 export async function getOrderById(id: string): Promise<Order | null> {
-  const db = await getFirestoreAdmin();
+  const db = await getFirestore();
   
   try {
     const doc = await db.doc(`orders/${id}`).get();
