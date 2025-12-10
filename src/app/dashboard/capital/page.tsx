@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { collection, query, orderBy, where } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase';
+import { useFirestore } from '@/firebase/provider';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { DataTable } from '@/components/dashboard/capital/data-table';
 import { columns } from '@/components/dashboard/capital/columns';
@@ -26,7 +26,7 @@ import { useEffect } from 'react';
 
 export default function CapitalPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const { firestore } = initializeFirebase();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [summary, setSummary] = useState({
@@ -59,6 +59,7 @@ export default function CapitalPage() {
 
   // Create memoized query for capital entries
   const capitalQuery = useMemo(() => {
+    if (!firestore) return null;
     const capitalCollection = collection(firestore, 'capital');
     let q = query(capitalCollection, orderBy('createdAt', 'desc'));
     

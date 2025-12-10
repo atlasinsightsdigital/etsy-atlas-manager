@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { collection, query, orderBy, where } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase';
+import { useFirestore } from '@/firebase/provider';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { DataTable } from '@/components/dashboard/users/data-table';
 import { columns } from '@/components/dashboard/users/columns';
@@ -26,7 +26,7 @@ import { useEffect } from 'react';
 
 export default function UsersPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const { firestore } = initializeFirebase();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [usersStats, setUsersStats] = useState({
@@ -66,6 +66,7 @@ export default function UsersPage() {
 
   // Create memoized query for users
   const usersQuery = useMemo(() => {
+    if (!firestore) return null;
     const usersCollection = collection(firestore, 'users');
     let q = query(usersCollection, orderBy('createdAt', 'desc'));
     

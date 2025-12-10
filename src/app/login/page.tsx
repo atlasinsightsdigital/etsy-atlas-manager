@@ -14,15 +14,15 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { 
   GoogleAuthProvider, 
-  signInWithPopup,  // CHANGED FROM signInWithRedirect
-  signOut  // Add this import
+  signInWithPopup,
+  signOut
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { Loader2, AlertCircle } from 'lucide-react';
-import { FirebaseClientProvider, useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase/provider';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-function LoginPageContent() {
+export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
   const firestore = useFirestore();
@@ -33,7 +33,6 @@ function LoginPageContent() {
 
   // Check for browser compatibility issues
   useEffect(() => {
-    // Check if third-party cookies might be blocked
     const hasStorageAccess = typeof document.hasStorageAccess === 'function';
     const isChrome = /Chrome/.test(navigator.userAgent);
     const isSafari = /Safari/.test(navigator.userAgent);
@@ -329,13 +328,5 @@ function LoginPageContent() {
         </CardFooter>
       </Card>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <FirebaseClientProvider>
-      <LoginPageContent />
-    </FirebaseClientProvider>
   );
 }
