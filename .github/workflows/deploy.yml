@@ -1,16 +1,14 @@
-# Fichier d'exemple de workflow GitHub Actions pour déployer sur Firebase
-
 name: Deploy to Firebase
 
 on:
   push:
     branches:
-      - main # Déclenche le workflow sur un push sur la branche main
+      - main
 
 jobs:
   deploy_firebase:
-    name: Deploy App to Firebase
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -18,17 +16,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # Assurez-vous que cela correspond à votre environnement de développement
+          node-version: '18'
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
 
-      - name: Build Project
+      - name: Build project
         run: npm run build
-        
+
       - name: Authenticate to Google Cloud
         run: |
           echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}' > $HOME/gcloud.json
@@ -36,5 +34,4 @@ jobs:
       - name: Deploy to Firebase
         env:
           GOOGLE_APPLICATION_CREDENTIALS: $HOME/gcloud.json
-        run: |
-          firebase deploy --project "${{ secrets.FIREBASE_PROJECT_ID }}" --non-interactive
+        run: firebase deploy --project "${{ secrets.FIREBASE_PROJECT_ID }}" --non-interactive
